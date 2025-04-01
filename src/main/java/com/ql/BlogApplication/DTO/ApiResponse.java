@@ -1,4 +1,4 @@
-package com.ql.BlogApplication.payloads;
+package com.ql.BlogApplication.DTO;
 
 import lombok.Builder;
 import lombok.Data;
@@ -7,7 +7,7 @@ import lombok.Data;
 @Builder
 public class ApiResponse {
     private boolean success;
-    private int statusCode;
+    private int Code;
     private String message;
     private String error;
     private Object data;  // <--- This will hold User or any data

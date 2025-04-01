@@ -1,6 +1,6 @@
 package com.ql.BlogApplication.exceptions;
 
-import com.ql.BlogApplication.payloads.ApiResponse;
+import com.ql.BlogApplication.DTO.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
 
         ApiResponse response = ApiResponse.builder()
                 .success(false)
-                .statusCode(HttpStatus.NOT_FOUND.value())
+                .Code(HttpStatus.NOT_FOUND.value())
                 .message("Resource Not Found")
                 .error(ex.getMessage())
                 .build();
@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
 
         ApiResponse response = ApiResponse.builder()
                 .success(false)
-                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .Code(HttpStatus.BAD_REQUEST.value())
                 .message("Bad Request")
                 .error(ex.getMessage())
                 .build();
@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
 
         ApiResponse response = ApiResponse.builder()
                 .success(false)
-                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .Code(HttpStatus.BAD_REQUEST.value())
                 .message("Validation Failed")
                 .data(errors)
                 .error("error occured")// all errors in map
@@ -74,7 +74,7 @@ public class GlobalExceptionHandler {
         logger.error("No handle found: {}", ex.getRequestURL());
         ApiResponse response = ApiResponse.builder()
                 .success(false)
-                .statusCode(HttpStatus.NOT_FOUND.value())
+                .Code(HttpStatus.NOT_FOUND.value())
                 .message("No handler found for this URL")
                 .error(ex.getMessage())
                 .build();

@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.convert.DataSizeUnit;
 
 @Data
@@ -27,3 +28,5 @@ public class User {
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 }
+
+
