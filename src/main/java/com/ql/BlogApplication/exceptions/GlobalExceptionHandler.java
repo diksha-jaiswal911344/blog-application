@@ -1,5 +1,6 @@
 package com.ql.BlogApplication.exceptions;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ql.BlogApplication.DTO.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

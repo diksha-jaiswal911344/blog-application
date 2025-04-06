@@ -16,10 +16,47 @@ public class UserRequestDto {
     @NotEmpty(message = "Email must not be empty")
     private String email;
 
-    // getter & setter
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    //TODO: ADD REGEX for strong passwrod
+    @NotEmpty(message = "Password must not be empty")
+    @Size(min = 6, message = "Password must be at least 6 characters long")
+    private String password;
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    private String roleName;
+
+    // getter & setter
+
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
+
 }

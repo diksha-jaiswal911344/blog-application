@@ -1,32 +1,58 @@
 package com.ql.BlogApplication.entities;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.convert.DataSizeUnit;
 
-@Data
+import java.util.List;
+
+@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Entity
+@Table(name="users")
 public class User {
-    private int id;
-    private String data;
 
-    @NotBlank(message = "Username is required")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false,unique = true)
     private String name;
 
-    @Email(message = "Email should be valid")
+    @Column(nullable = false, unique=true)
     private String email;
 
-    @Size(min = 6, message = "Password must be at least 6 characters")
+    @Column(nullable = false)
     private String password;
+
+    @ManyToOne
+    @JsonBackReference
+    @JoinColumn(name="role_id", nullable = false)
+    private Role role;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "user", cascade=CascadeType.ALL, orphanRemoval = true)
+    private List<UserRole> userRoles;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Like> likes;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy="user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments;
+
 }
-
-
