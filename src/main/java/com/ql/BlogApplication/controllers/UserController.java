@@ -1,6 +1,8 @@
 package com.ql.BlogApplication.controllers;
 
+import com.ql.BlogApplication.DTO.LoginDto;
 import com.ql.BlogApplication.DTO.UserRequestDto;
+import com.ql.BlogApplication.DTO.UserResponseDto;
 import com.ql.BlogApplication.exceptions.BadRequestException;
 import com.ql.BlogApplication.DTO.ApiResponse;
 import com.ql.BlogApplication.services.UserService;
@@ -13,13 +15,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.ql.BlogApplication.entities.User;
 
+import java.util.List;
+
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("api/users")
 public class UserController {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-
+//    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
 
@@ -28,47 +31,40 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse> getUser(@PathVariable Long id) {
-        logger.info("Fetching user with ID: {}", id);
-
-//        // Simulating a user fetch from DB (we will replace this with actual DB logic later)
-//        User user = User.builder()
-//                .id(id)
-//                .name("acv")
-//                .email("test@example.com")
-//                .build();
-        User user = userService.getUserById(id);
-        // Preparing API response
-        ApiResponse response = ApiResponse.builder()
-                .success(true)
-                .Code(HttpStatus.OK.value())
-                .message("User found successfully")
-                .data(user)
-                .build();
-
-            logger.info("User found: {}", user);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    //create user
+    @PostMapping(value = "/register")
+    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto dto){
+        return new ResponseEntity<>(userService.createUser(dto),HttpStatus.CREATED);
     }
 
-    // dummy POST to trigger MethodArgumentNotValidException
-    @PostMapping("/cre")
-    public ResponseEntity<ApiResponse> createUser(@Valid @RequestBody UserRequestDto request) {
-        logger.info("Creating user with Name: {}, Email:{}, Role:{}",request.getName(),request.getEmail(),request.getRoleName());
+    //read all users
+    @GetMapping
+    public List<UserResponseDto> getAllUsers(){
+        return userService.getAllUsers();
+    }
 
-        if ("error".equalsIgnoreCase(request.getName())) {
-            throw new BadRequestException("Bad request: name cannot be 'error'");
-        }
+    //read by id
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id){
+        return ResponseEntity.ok(userService.getUserById(id));
+    }
 
-        User newUser = userService.createUser(request);
+    //update
+    @PostMapping("/{id}")
+    public ResponseEntity<UserResponseDto> updateUser(@Valid @RequestBody UserRequestDto userRequestDto, @PathVariable Long id){
+        return new ResponseEntity<>(userService.updateUser(userRequestDto,id), HttpStatus.OK);
+    }
 
-        // just for testing
-        logger.info("User created successfully");
-        return ResponseEntity.ok(ApiResponse.builder()
-                .success(true)
-                .Code(201)
-                .data(newUser)
-                .message("User created successfully")
-                .build());
+    //delete
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteUser(@PathVariable Long id){
+        return ResponseEntity.ok("User deleted successfully");
+    }
+
+    //login api
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse> loginUser(@RequestBody LoginDto loginDto){
+        ApiResponse apiResponse=userService.loginUser(loginDto);
+        return ResponseEntity.ok(apiResponse);
     }
 }
