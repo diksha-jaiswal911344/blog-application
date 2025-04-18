@@ -20,8 +20,8 @@ public class Subscription {
 
     @ManyToOne
     @JsonBackReference
-    @JoinColumn(name = "viewer_id", nullable = false)
-    private User viewer;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne
     @JsonBackReference

@@ -68,7 +68,7 @@ public class PostServiceImpl implements PostService {
         postDto.setPublished(post.isPublished());
         return postDto;
     }
-//convt dto to entity
+    //convt dto to entity
     private Post mapToEntity(PostDto postDto){
         Post post= new Post();
         post.setTitle(postDto.getTitle());

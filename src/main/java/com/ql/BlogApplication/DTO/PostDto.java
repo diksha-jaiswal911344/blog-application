@@ -21,6 +21,5 @@ public class PostDto {
     @Size(min = 10, message = "Post title should have at least 10 characters")
     private String content;
 
-    @NotEmpty
     private boolean isPublished;
 }
