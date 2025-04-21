@@ -13,6 +13,7 @@ import com.ql.BlogApplication.repository.UserRepository;
 import com.ql.BlogApplication.repository.UserRoleRepository;
 import com.ql.BlogApplication.services.UserService;
 import com.ql.BlogApplication.utils.JwtUtil;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -75,30 +76,45 @@ public class UserServiceImpl implements UserService {
         return mapToResponse(user);
     }
 
+    @Transactional
     @Override
     public UserResponseDto updateUser(UserRequestDto userRequestDto, Long id) {
         User user= userRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User","id",id));
         user.setName(userRequestDto.getName());
         user.setEmail(userRequestDto.getEmail());
         user.setPassword(userRequestDto.getPassword());
-        Optional<Role> optionalRole = roleRepository.findByName(userRequestDto.getRoleName());
+        // save updated user
+        userRepository.save(user);
 
-        if(optionalRole.isEmpty()){
-            throw new ResourceNotFoundException("optionalRole","id",id);
-        }
+        //first remove all roles to avoid duplicate roles
+        userRoleRepository.deleteByUser(user);
+
+        Role role = roleRepository.findByName(userRequestDto.getRoleName()).orElseThrow(()-> new ResourceNotFoundException("Role","name",userRequestDto.getRoleName()));
 
         UserRole userRole=new UserRole();
         userRole.setUser(user);
-        userRole.setRole(optionalRole.get());
+        userRole.setRole(role);
         userRoleRepository.save(userRole);
-        return mapToResponse(user);
 
+        List<UserRole> userRoles=userRoleRepository.findByUser(user);
+        String updatedRoleName=userRoles.get(0).getRole().getName();
+
+        UserResponseDto dto= new UserResponseDto();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setRoleName(updatedRoleName);
+
+        return dto;
     }
 
+    @Transactional
     @Override
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+
+        userRoleRepository.deleteByUser(user);
         userRepository.delete(user);
     }
 

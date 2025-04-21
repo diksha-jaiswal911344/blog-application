@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Date;
 import java.util.List;
 
 @Builder
@@ -31,6 +32,15 @@ public class User {
 
     @Column(nullable = false)
     private String password;
+
+    @Column(name="otp")
+    private String otp;
+
+    @Column(name = "otp-generated-time")
+    private Date otpGeneratedTime;
+
+    @Column(name = "email-verified")
+    private Boolean emailVerfied=false;
 
     @ManyToOne
     @JsonBackReference

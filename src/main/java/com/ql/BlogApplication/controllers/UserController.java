@@ -5,7 +5,11 @@ import com.ql.BlogApplication.DTO.UserRequestDto;
 import com.ql.BlogApplication.DTO.UserResponseDto;
 import com.ql.BlogApplication.exceptions.BadRequestException;
 import com.ql.BlogApplication.DTO.ApiResponse;
+import com.ql.BlogApplication.repository.UserRepository;
 import com.ql.BlogApplication.services.UserService;
+import com.ql.BlogApplication.utils.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +28,16 @@ public class UserController {
 
 //    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
+    private  final UserRepository userRepository;
+
+    private final JwtUtil jwtUtil;
+
     private final UserService userService;
 
     @Autowired // Inject UserService
-    public UserController(UserService userService) {
+    public UserController(UserRepository userRepository, JwtUtil jwtUtil, UserService userService) {
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
         this.userService = userService;
     }
 
@@ -50,15 +60,47 @@ public class UserController {
     }
 
     //update
-    @PostMapping("/{id}")
-    public ResponseEntity<UserResponseDto> updateUser(@Valid @RequestBody UserRequestDto userRequestDto, @PathVariable Long id){
-        return new ResponseEntity<>(userService.updateUser(userRequestDto,id), HttpStatus.OK);
+//    @PostMapping("/{id}")
+//    public ResponseEntity<UserResponseDto> updateUser(@Valid @RequestBody UserRequestDto userRequestDto, @PathVariable Long id){
+//        return new ResponseEntity<>(userService.updateUser(userRequestDto,id), HttpStatus.OK);
+//    }
+
+    @PutMapping("/update")
+    public ResponseEntity<?> updateUser(@RequestHeader("Authorization") String token,
+                                        @Valid @RequestBody UserRequestDto userRequestDto) {
+
+        String email = jwtUtil.extractEmail(token.substring(7));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserResponseDto response = userService.updateUser(userRequestDto,user.getId());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+
+//    //update
+//    @PutMapping("/update")
+//    public ResponseEntity<ApiResponse> updateUser(@Valid @RequestBody UserRequestDto userRequestDto, HttpServletRequest request){
+//        String token= request.getHeader("Authorization").substring(7);
+//        String email=jwtUtil.extractEmail(token);
+////
+////        String username = jwtUtil.extractUsername(token); // optional
+////        String role = jwtUtil.extractRole(token);
+//
+//        ApiResponse response= userService.updateUser(email, userRequestDto){
+//            return new ResponseEntity<>(response,HttpStatus.OK);
+//        }
+//    }
+
+
     //delete
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long id){
-        return ResponseEntity.ok("User deleted successfully");
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token){
+        String email=jwtUtil.extractEmail(token.substring(7));
+
+        User user=userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("user not found"));
+        userService.deleteUser(user.getId()); //only deleting own d
+        return new ResponseEntity<>("User deleted successfully",HttpStatus.OK);
     }
 
     //login api
