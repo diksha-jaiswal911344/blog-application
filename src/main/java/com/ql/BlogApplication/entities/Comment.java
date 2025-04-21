@@ -19,6 +19,9 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "comment_content", nullable = false)
+    private String comment_content;
+
     @ManyToOne
     @JsonBackReference
     @JoinColumn(name = "user_id", nullable = false)
