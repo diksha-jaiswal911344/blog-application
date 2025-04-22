@@ -40,7 +40,7 @@ public class User {
     private Date otpGeneratedTime;
 
     @Column(name = "email-verified")
-    private Boolean emailVerfied=false;
+    private Boolean emailVerified=false;
 
     @ManyToOne
     @JsonBackReference

@@ -1,10 +1,7 @@
 package com.ql.BlogApplication.controllers;
 
-import com.ql.BlogApplication.DTO.LoginDto;
-import com.ql.BlogApplication.DTO.UserRequestDto;
-import com.ql.BlogApplication.DTO.UserResponseDto;
+import com.ql.BlogApplication.DTO.*;
 import com.ql.BlogApplication.exceptions.BadRequestException;
-import com.ql.BlogApplication.DTO.ApiResponse;
 import com.ql.BlogApplication.repository.UserRepository;
 import com.ql.BlogApplication.services.UserService;
 import com.ql.BlogApplication.utils.JwtUtil;
@@ -28,11 +25,13 @@ public class UserController {
 
 //    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
-    private  final UserRepository userRepository;
+    private final UserRepository userRepository;
 
     private final JwtUtil jwtUtil;
 
     private final UserService userService;
+
+    private OtpVerificationRequestDto otpVerificationRequestDto;
 
     @Autowired // Inject UserService
     public UserController(UserRepository userRepository, JwtUtil jwtUtil, UserService userService) {
@@ -43,27 +42,42 @@ public class UserController {
 
     //create user
     @PostMapping(value = "/register")
-    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto dto){
-        return new ResponseEntity<>(userService.createUser(dto),HttpStatus.CREATED);
+    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto dto) {
+        return new ResponseEntity<>(userService.createUser(dto), HttpStatus.CREATED);
     }
 
+    //verify otp during registration
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestBody @Valid OtpVerificationRequestDto otpVerificationRequestDto) {
+        String message = userService.verifyOtp(otpVerificationRequestDto);
+        return ResponseEntity.ok(message);
+    }
+
+    //verify login otp
+    @PostMapping("/verify-login-otp")
+    public ResponseEntity<ApiResponse> verifyLoginOtp(@RequestBody @Valid OtpVerificationRequestDto dto) {
+        ApiResponse apiResponse = userService.verifyLoginOtp(dto);
+        return ResponseEntity.ok(apiResponse);
+    }
     //read all users
     @GetMapping
-    public List<UserResponseDto> getAllUsers(){
+    public List<UserResponseDto> getAllUsers() {
         return userService.getAllUsers();
+    }
+
+    //FOR login otp request on EMAIL
+    @PostMapping("/request-otp")
+    public ResponseEntity<String> requestOtpForLogin(@RequestBody @Valid OtpLoginRequestDto dto) {
+        userService.sendOtpForLogin(dto);
+        return ResponseEntity.ok("OTP sent to your email.");
+
     }
 
     //read by id
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id){
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
-
-    //update
-//    @PostMapping("/{id}")
-//    public ResponseEntity<UserResponseDto> updateUser(@Valid @RequestBody UserRequestDto userRequestDto, @PathVariable Long id){
-//        return new ResponseEntity<>(userService.updateUser(userRequestDto,id), HttpStatus.OK);
-//    }
 
     @PutMapping("/update")
     public ResponseEntity<?> updateUser(@RequestHeader("Authorization") String token,
@@ -73,40 +87,26 @@ public class UserController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        UserResponseDto response = userService.updateUser(userRequestDto,user.getId());
+        UserResponseDto response = userService.updateUser(userRequestDto, user.getId());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-
-//    //update
-//    @PutMapping("/update")
-//    public ResponseEntity<ApiResponse> updateUser(@Valid @RequestBody UserRequestDto userRequestDto, HttpServletRequest request){
-//        String token= request.getHeader("Authorization").substring(7);
-//        String email=jwtUtil.extractEmail(token);
-////
-////        String username = jwtUtil.extractUsername(token); // optional
-////        String role = jwtUtil.extractRole(token);
-//
-//        ApiResponse response= userService.updateUser(email, userRequestDto){
-//            return new ResponseEntity<>(response,HttpStatus.OK);
-//        }
-//    }
-
-
     //delete
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token){
-        String email=jwtUtil.extractEmail(token.substring(7));
+    public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token) {
+        String email = jwtUtil.extractEmail(token.substring(7));
 
-        User user=userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("user not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("user not found"));
         userService.deleteUser(user.getId()); //only deleting own d
-        return new ResponseEntity<>("User deleted successfully",HttpStatus.OK);
+        return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
     }
 
     //login api
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse> loginUser(@RequestBody LoginDto loginDto){
-        ApiResponse apiResponse=userService.loginUser(loginDto);
+    public ResponseEntity<ApiResponse> loginUser(@RequestBody LoginDto loginDto) {
+        ApiResponse apiResponse = userService.loginUser(loginDto);
         return ResponseEntity.ok(apiResponse);
     }
+
+
 }

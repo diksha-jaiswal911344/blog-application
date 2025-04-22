@@ -1,9 +1,6 @@
 package com.ql.BlogApplication.services.impl;
 
-import com.ql.BlogApplication.DTO.ApiResponse;
-import com.ql.BlogApplication.DTO.LoginDto;
-import com.ql.BlogApplication.DTO.UserRequestDto;
-import com.ql.BlogApplication.DTO.UserResponseDto;
+import com.ql.BlogApplication.DTO.*;
 import com.ql.BlogApplication.entities.Role;
 import com.ql.BlogApplication.entities.User;
 import com.ql.BlogApplication.entities.UserRole;
@@ -11,14 +8,18 @@ import com.ql.BlogApplication.exceptions.ResourceNotFoundException;
 import com.ql.BlogApplication.repository.RoleRepository;
 import com.ql.BlogApplication.repository.UserRepository;
 import com.ql.BlogApplication.repository.UserRoleRepository;
+import com.ql.BlogApplication.services.EmailService;
 import com.ql.BlogApplication.services.UserService;
 import com.ql.BlogApplication.utils.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +27,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private EmailService emailService;
 
     private final UserRoleRepository userRoleRepository;
     private final RoleRepository roleRepository;
@@ -44,23 +48,30 @@ public class UserServiceImpl implements UserService {
         if(userRepository.existsByEmail(userRequestDto.getEmail())){
             throw new RuntimeException("Email already exists");
         }
-        //fetch the role 1st
+        //fetch the role
         Role role = roleRepository.findByName(userRequestDto.getRoleName())
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "name", userRequestDto.getRoleName()));
+
+        //Generate OTP
+        String otp = String.valueOf(new Random().nextInt(900000) + 100000); // 6-digit OTP
+        Date otpGeneratedTime = new Date();
+
         //create and save user
         User user=mapToEntity(userRequestDto);
         user.setRole(role);
+        user.setOtp(otp);
+        user.setOtpGeneratedTime(otpGeneratedTime);
+        user.setEmailVerified(false);
         user=userRepository.save(user);
-        //fetch role by name
-        Optional<Role> optionalRole=roleRepository.findByName(userRequestDto.getRoleName());
-        if(optionalRole.isEmpty()){
-            throw new ResourceNotFoundException("Role", "name", userRequestDto.getRoleName());
-        }
+
         //create user role and save it
         UserRole userRole= new UserRole();
         userRole.setUser(user);
-        userRole.setRole(optionalRole.get());
+        userRole.setRole(role);
         userRoleRepository.save(userRole);
+
+        //send otp email
+        emailService.sendOtpEmail(user.getEmail(), otp);
 
         return mapToResponse(user);
     }
@@ -140,6 +151,84 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Override
+    public String verifyOtp(OtpVerificationRequestDto otpVerificationRequestDto){
+        User user = userRepository.findByEmail(otpVerificationRequestDto.getEmail()).orElseThrow(()-> new ResourceNotFoundException("User", "Email", otpVerificationRequestDto.getEmail()));
+
+        if(user.getOtp()==null || user.getOtpGeneratedTime()==null){
+            throw new RuntimeException("Otp not generated please register again");
+        }
+
+        // check otp expiry(10 min)
+        long currentTime= System.currentTimeMillis();
+        long otpGeneratedTime=user.getOtpGeneratedTime().getTime();
+
+        if((currentTime - otpGeneratedTime) > 10*60*1000){
+            throw new RuntimeException("otp expired please register again");
+        }
+
+        //validate otp
+        if(!user.getOtp().equals(otpVerificationRequestDto.getOtp())){
+            throw new RuntimeException("otp invalid");
+        }
+
+        //update user after verification
+        user.setEmailVerified(true);
+        user.setOtp(null);
+        user.setOtpGeneratedTime(null);
+        userRepository.save(user);
+
+        return "Email varified successfully";
+    }
+
+    //send otp for login
+    public void sendOtpForLogin(OtpLoginRequestDto otpLoginRequestDto) {
+        User user = userRepository.findByEmail(otpLoginRequestDto.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", otpLoginRequestDto.getEmail()));
+
+        if (user.getEmailVerified()==null || !user.getEmailVerified()) {
+            throw new RuntimeException("Email not verified.");
+        }
+
+        String otp = String.format("%06d",new Random().nextInt(999999));
+        user.setOtp(otp);
+        user.setOtpGeneratedTime(new Date());
+        userRepository.save(user);
+
+        emailService.sendOtpEmail(otpLoginRequestDto.getEmail(), otp);
+    }
+
+    @Override
+    public ApiResponse verifyLoginOtp(OtpVerificationRequestDto dto) {
+        User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", dto.getEmail()));
+
+        if (user.getOtp() == null || !user.getOtp().equals(dto.getOtp())) {
+            throw new RuntimeException("Invalid OTP.");
+        }
+
+        // Optional: Check OTP expiry (e.g., valid for 5 minutes)
+        long otpAge = new Date().getTime() - user.getOtpGeneratedTime().getTime();
+        if (otpAge > 5 * 60 * 1000) {
+            throw new RuntimeException("OTP has expired.");
+        }
+
+        // Generate JWT
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        // Clear the OTP after successful login
+        user.setOtp(null);
+        user.setOtpGeneratedTime(null);
+        userRepository.save(user);
+
+        return ApiResponse.builder()
+                .success(true)
+                .Code(200)
+                .message("OTP verified successfully")
+                .data(token) // or user, or whatever data
+                .build();
+    }
+
     private User mapToEntity(UserRequestDto dto){
         User user= new User();
         user.setName(dto.getName());
@@ -155,6 +244,7 @@ public class UserServiceImpl implements UserService {
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());
         dto.setRoleName(user.getRole() != null ? user.getRole().getName() : "");
+        dto.setEmailVerified(user.getEmailVerified());
         return dto;
     }
 }
