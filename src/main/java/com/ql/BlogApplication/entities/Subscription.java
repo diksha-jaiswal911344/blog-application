@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "subscription")
+@Table(name = "subscription", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_id", "author_id"})
+})
 @Getter
 @Setter
 @AllArgsConstructor

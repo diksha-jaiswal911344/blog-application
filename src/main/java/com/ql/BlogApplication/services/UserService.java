@@ -1,9 +1,6 @@
 package com.ql.BlogApplication.services;
 
-import com.ql.BlogApplication.DTO.ApiResponse;
-import com.ql.BlogApplication.DTO.LoginDto;
-import com.ql.BlogApplication.DTO.UserRequestDto;
-import com.ql.BlogApplication.DTO.UserResponseDto;
+import com.ql.BlogApplication.DTO.*;
 
 import java.util.List;
 
@@ -19,4 +16,11 @@ public interface UserService {
     void deleteUser(Long id);
 
     ApiResponse loginUser(LoginDto loginDto);
+
+    public String verifyOtp(OtpVerificationRequestDto otpVerificationRequestDto);
+
+    public void sendOtpForLogin(OtpLoginRequestDto otpLoginRequestDto);
+
+    ApiResponse verifyLoginOtp(OtpVerificationRequestDto otpVerificationRequestDto);
+
 }

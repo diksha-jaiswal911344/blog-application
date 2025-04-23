@@ -24,6 +24,11 @@ public class PostController {
         return new ResponseEntity<>(postService.createPost(postDto), HttpStatus.CREATED);
     }
 
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<PostDto>> getPostsByCategory(@PathVariable(name = "categoryId") Long categoryId){
+        return ResponseEntity.ok(postService.getPostsByCategoryId(categoryId));
+    }
+
     //get all post rest apis
     @GetMapping
     public List<PostDto> getAllPosts() {
@@ -48,5 +53,12 @@ public class PostController {
     public ResponseEntity<String> deletePost(@PathVariable(name = "id") Long id) {
         postService.deletePostById(id);
         return new ResponseEntity<>("Post entity deleted successfully.", HttpStatus.OK);
+    }
+
+    //getting uncategorized posts
+    @GetMapping("/category/uncategorized")
+    public ResponseEntity<List<PostDto>>getUncategorizedPosts(){
+        List<PostDto> postDtos=postService.getUncategorizedPosts();
+        return ResponseEntity.ok(postDtos);
     }
 }

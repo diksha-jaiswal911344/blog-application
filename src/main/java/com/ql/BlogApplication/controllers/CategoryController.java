@@ -43,4 +43,11 @@ public class CategoryController {
         return new ResponseEntity<>(categoryService.updateCategory(categoryDto, id), HttpStatus.OK);
     }
 
+    //delete category by id
+    @DeleteMapping("/{category_id}")
+    public ResponseEntity<?> deleteCategory(@PathVariable Long category_id){
+        categoryService.deleteCategory(category_id);
+        return ResponseEntity.ok("category deleted successfully and related posts are asssigned as 'Uncategoriged'");
+    }
+
 }

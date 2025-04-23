@@ -14,4 +14,7 @@ CategoryDto getCategoryById(Long id);
 
 CategoryDto updateCategory(CategoryDto categoryDto, Long id);
 
+void deleteCategory(Long categoryId);
+
+
 }
