@@ -10,6 +10,7 @@ import com.ql.BlogApplication.repository.LikeRepository;
 import com.ql.BlogApplication.repository.PostRepository;
 import com.ql.BlogApplication.repository.UserRepository;
 import com.ql.BlogApplication.services.LikeService;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -31,13 +32,14 @@ public class LikeServiceImpl implements LikeService {
         this.postRepository = postRepository;
     }
 
+    @Transactional
     @Override
     public String toggleLike(LikeDto likeDto) {
         User user= userRepository.findById(likeDto.getUserId()).orElseThrow(()->new ResourceNotFoundException("user","id",likeDto.getUserId()));
         Post post= postRepository.findById(likeDto.getPostId()).orElseThrow(()->new ResourceNotFoundException("post","id",likeDto.getPostId()));
 
         logger.info("request is arived:{}",likeDto.isLike());
-        Optional<Like> existingLikeOpt=likeRepository.findByUserIdAndPostId(likeDto.getUserId(),likeDto.getPostId());
+        Optional<Like> existingLikeOpt=likeRepository.findLikesByUserIdAndPostId(likeDto.getUserId(),likeDto.getPostId());
 
         if(likeDto.isLike()){
             //user wants to like

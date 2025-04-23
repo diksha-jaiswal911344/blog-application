@@ -1,11 +1,17 @@
 package com.ql.BlogApplication.DTO;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NonNull;
 
 @Data
 public class LikeDto {
+
+    @NotNull
     private Long userId;
+
+    @NotNull
     private Long postId;
 
     // lombok make getIsLike() not isLike() getter setter so this will case false value insertition from json .

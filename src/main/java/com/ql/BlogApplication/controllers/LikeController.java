@@ -2,6 +2,7 @@ package com.ql.BlogApplication.controllers;
 
 import com.ql.BlogApplication.DTO.LikeDto;
 import com.ql.BlogApplication.services.LikeService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class LikeController {
     }
 
     @PostMapping
-    public ResponseEntity<String> toggleLike(@RequestBody LikeDto likeDto){
+    public ResponseEntity<String> toggleLike(@RequestBody @Valid LikeDto likeDto){
         String response=likeService.toggleLike(likeDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
