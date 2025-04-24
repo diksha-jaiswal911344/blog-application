@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,8 +21,10 @@ public class PostController {
 
     //CREATE A BLOG POST
     @PostMapping
-    public ResponseEntity<PostDto> createPost(@Valid @RequestBody PostDto postDto) {
-        return new ResponseEntity<>(postService.createPost(postDto), HttpStatus.CREATED);
+    public ResponseEntity<PostDto> createPost(
+            @RequestPart("post") PostDto postDto,
+            @RequestParam("image") MultipartFile image) {
+        return new ResponseEntity<>(postService.createPost(postDto, image), HttpStatus.CREATED);
     }
 
     @GetMapping("/category/{categoryId}")
@@ -43,9 +46,11 @@ public class PostController {
 
     // update post by id
     @PutMapping("/{id}")
-    public ResponseEntity<PostDto> updatePost(@Valid @RequestBody PostDto postDto, @PathVariable(name = "id") long id) {
-        PostDto postResponse = postService.updatePost(postDto, id);
-        return new ResponseEntity<>(postResponse, HttpStatus.OK);
+    public ResponseEntity<PostDto> updatePost(
+            @PathVariable Long id,
+            @RequestPart("post") PostDto postDto,
+            @RequestParam(value = "image", required = false) MultipartFile image) {
+        return new ResponseEntity<>(postService.updatePost(postDto, id, image), HttpStatus.OK);
     }
 
     //delete post rest api

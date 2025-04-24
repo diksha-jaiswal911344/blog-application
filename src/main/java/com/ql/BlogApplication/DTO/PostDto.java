@@ -26,4 +26,7 @@ public class PostDto {
     private boolean isPublished;
 
     private long categoryId;
+
+    private String imageUrl;
+
 }
