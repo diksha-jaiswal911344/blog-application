@@ -130,26 +130,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ApiResponse loginUser(LoginDto loginDto) {
+    public String loginUser(LoginDto loginDto) {
         if (loginDto.getEmail() == null || loginDto.getEmail().isEmpty() ||
                 loginDto.getPassword() == null || loginDto.getPassword().isEmpty()) {
             throw new RuntimeException("Email and password must not be empty");
         }
 
-        User user = userRepository.findByEmail(loginDto.getEmail()).orElseThrow(()->new RuntimeException("User not found"));
-        if(!user.getPassword().equals(loginDto.getPassword())){
-            throw new RuntimeException("Invalid Credentials");
+        User user = userRepository.findByEmail(loginDto.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!user.getPassword().equals(loginDto.getPassword())) {
+            throw new RuntimeException("Invalid credentials");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
-        ApiResponse response = ApiResponse.builder()
-                .message("Login successful")
-                .success(true)
-                .data(token)
-                .build();
-        return response;
-
+        return jwtUtil.generateToken(user.getEmail());
     }
+
 
     @Override
     public String verifyOtp(OtpVerificationRequestDto otpVerificationRequestDto){
@@ -199,7 +195,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ApiResponse verifyLoginOtp(OtpVerificationRequestDto dto) {
+    public String verifyLoginOtp(OtpVerificationRequestDto dto) {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", dto.getEmail()));
 
@@ -221,12 +217,7 @@ public class UserServiceImpl implements UserService {
         user.setOtpGeneratedTime(null);
         userRepository.save(user);
 
-        return ApiResponse.builder()
-                .success(true)
-                .Code(200)
-                .message("OTP verified successfully")
-                .data(token) // or user, or whatever data
-                .build();
+        return token;
     }
 
     private User mapToEntity(UserRequestDto dto){

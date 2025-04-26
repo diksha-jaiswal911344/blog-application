@@ -28,28 +28,16 @@ public class PostServiceImpl implements PostService {
         this.categoryRepository = categoryRepository;
         this.fileUploadService = fileUploadService;
     }
-
-
-//    public PostServiceImpl(PostRepository postRepository, CategoryRepository categoryRepository) {
-//        this.postRepository = postRepository;
-//        this.categoryRepository = categoryRepository;
-
-
-
-
     @Override
-    public PostDto createPost(PostDto postDto, MultipartFile file) {
-        // Store image using FileUploadService
-        String imageUrl = fileUploadService.storeFile(file);
+    public PostDto createPost(PostDto postDto) {
 
-       // convt dto to entity
         Post post=mapToEntity(postDto);
-//<<<<<<< Updated upstream
+
         Category category=categoryRepository.findById(postDto.getCategoryId()).orElseThrow(()->new ResourceNotFoundException("category","id",postDto.getCategoryId()));
         post.setCategory(category);
-//=======
-        post.setImageUrl(imageUrl); // Set the uploaded image URL to the Post entity
-//>>>>>>> Stashed changes
+
+//        post.setImageUrl(imageUrl); // Set the uploaded image URL to the Post entity
+
         Post newPost=postRepository.save(post);
 
         //convt entity to dto
@@ -57,6 +45,16 @@ public class PostServiceImpl implements PostService {
         return postResponse;
     }
 
+    //upload post image
+    @Override
+    public PostDto uploadPostImage(Long postId, MultipartFile file) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
+        String imageUrl = fileUploadService.storeFile(file);
+        post.setImageUrl(imageUrl);
+        Post updated = postRepository.save(post);
+        return mapToDTO(updated);
+    }
 
 
     @Override
@@ -119,11 +117,8 @@ public class PostServiceImpl implements PostService {
         postDto.setTitle(post.getTitle());
         postDto.setContent(post.getContent());
         postDto.setPublished(post.isPublished());
-//<<<<<<< Updated upstream
         postDto.setCategoryId(post.getCategory().getId());
-//=======
         postDto.setImageUrl(post.getImageUrl()); // Set image URL in the response DTO
-//>>>>>>> Stashed changes
         return postDto;
     }
     //convt dto to entity
@@ -132,10 +127,6 @@ public class PostServiceImpl implements PostService {
         post.setTitle(postDto.getTitle());
         post.setContent(postDto.getContent());
         post.setPublished(postDto.isPublished());
-//
-//        Category category = categoryRepository.findById(postDto.getCategoryId())
-//                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", postDto.getCategoryId()));
-//        post.setCategory(category);
 
         return post;
     }

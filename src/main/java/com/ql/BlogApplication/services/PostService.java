@@ -7,7 +7,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface PostService {
-    PostDto createPost(PostDto postDto, MultipartFile file);
+//    PostDto createPost(PostDto postDto, MultipartFile file);
+      PostDto createPost(PostDto postDto);
+
 
     List<PostDto> getAllPosts();
 
@@ -20,4 +22,6 @@ public interface PostService {
     List<PostDto> getPostsByCategoryId(Long categoryId);
 
     List<PostDto> getUncategorizedPosts();
+
+    PostDto uploadPostImage(Long postId, MultipartFile file);
 }

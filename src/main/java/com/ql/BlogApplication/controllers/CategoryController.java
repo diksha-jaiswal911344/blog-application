@@ -1,19 +1,22 @@
 package com.ql.BlogApplication.controllers;
 
+import com.ql.BlogApplication.DTO.ApiResponseNew;
 import com.ql.BlogApplication.DTO.CategoryDto;
-import com.ql.BlogApplication.entities.Category;
+//import com.ql.BlogApplication.entities.Category;
 import com.ql.BlogApplication.services.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/categories")
 public class CategoryController {
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
     public CategoryController(CategoryService categoryService) {
         this.categoryService = categoryService;
@@ -21,33 +24,58 @@ public class CategoryController {
 
     //Creating category
     @PostMapping
-    public ResponseEntity<CategoryDto> createCategory (@Valid @RequestBody CategoryDto categoryDto){
-        return new ResponseEntity<>(categoryService.createCategory(categoryDto), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponseNew<CategoryDto>> createCategory(@Valid @RequestBody CategoryDto categoryDto) {
+        CategoryDto createdCategory = categoryService.createCategory(categoryDto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponseNew.success(201, createdCategory, "Category created successfully"));
     }
 
     //get all categories api
     @GetMapping
-    public List<CategoryDto> getAllCategories(){
-        return categoryService.getALLCategory();
+    public ResponseEntity<ApiResponseNew<Map<String, List<CategoryDto>>>> getAllCategories() {
+        List<CategoryDto> categories = categoryService.getALLCategory();
+
+        Map<String, List<CategoryDto>> responseData = new HashMap<>();
+        responseData.put("availableCategories", categories);
+
+        return ResponseEntity.ok(
+                ApiResponseNew.success(200, responseData, "Categories fetched successfully")
+        );
     }
+
 
     //get category by id
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryDto> getCategoriesById(@PathVariable(value = "id") long id){
-        return ResponseEntity.ok(categoryService.getCategoryById(id));
+    public ResponseEntity<ApiResponseNew<CategoryDto>> getCategoriesById(@PathVariable("id") long id) {
+        CategoryDto category = categoryService.getCategoryById(id);
+        return ResponseEntity.ok(
+                ApiResponseNew.success(200, category, "Category fetched successfully")
+        );
     }
 
     // update category by id
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryDto> updateCategory(@Valid @RequestBody CategoryDto categoryDto, @PathVariable(value = "id") long id){
-        return new ResponseEntity<>(categoryService.updateCategory(categoryDto, id), HttpStatus.OK);
+    public ResponseEntity<ApiResponseNew<Map<String, CategoryDto>>> updateCategory(
+            @Valid @RequestBody CategoryDto categoryDto,
+            @PathVariable("id") long id) {
+
+        CategoryDto updatedCategory = categoryService.updateCategory(categoryDto, id);
+        Map<String,CategoryDto> responseUser=new HashMap<>();
+        responseUser.put("userUpdated",updatedCategory);
+        return ResponseEntity.ok(
+                ApiResponseNew.success(200, responseUser, "Category updated successfully")
+        );
     }
+
 
     //delete category by id
     @DeleteMapping("/{category_id}")
-    public ResponseEntity<?> deleteCategory(@PathVariable Long category_id){
+    public ResponseEntity<ApiResponseNew<Map<String, String>>> deleteCategory(@PathVariable Long category_id) {
         categoryService.deleteCategory(category_id);
-        return ResponseEntity.ok("category deleted successfully and related posts are asssigned as 'Uncategoriged'");
+        String message = "Category deleted successfully and related posts are assigned as 'Uncategorized'";
+        Map<String,String > data= new HashMap<>();
+        data.put("message",message);
+        return ResponseEntity.ok(ApiResponseNew.success(200, data, "Deletion successful"));
     }
 
 }

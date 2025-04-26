@@ -36,5 +36,6 @@ public class FileUploadServiceImpl implements FileUploadService {
             return "/uploads/" + fileName;
         } catch (IOException ex) {
             throw new RuntimeException("Could not store file " + fileName, ex);
-        }    }
+        }
+    }
 }

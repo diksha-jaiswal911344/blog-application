@@ -15,12 +15,12 @@ public interface UserService {
 
     void deleteUser(Long id);
 
-    ApiResponse loginUser(LoginDto loginDto);
+    String loginUser(LoginDto loginDto);
 
     public String verifyOtp(OtpVerificationRequestDto otpVerificationRequestDto);
 
     public void sendOtpForLogin(OtpLoginRequestDto otpLoginRequestDto);
 
-    ApiResponse verifyLoginOtp(OtpVerificationRequestDto otpVerificationRequestDto);
+    String verifyLoginOtp(OtpVerificationRequestDto otpVerificationRequestDto);
 
 }

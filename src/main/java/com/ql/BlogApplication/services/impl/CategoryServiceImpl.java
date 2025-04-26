@@ -31,8 +31,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category newCategory= categoryRepository.save(category);
 
         // we have to give respose to the client
-        CategoryDto categoryResponse=mapToDto(newCategory);
-        return categoryResponse;
+        return mapToDto(newCategory);
     }
 
     @Override

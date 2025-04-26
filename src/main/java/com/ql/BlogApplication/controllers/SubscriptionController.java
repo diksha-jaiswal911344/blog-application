@@ -1,10 +1,10 @@
 package com.ql.BlogApplication.controllers;
 
-import com.ql.BlogApplication.DTO.ApiResponse;
+import com.ql.BlogApplication.DTO.ApiResponseNew;
 import com.ql.BlogApplication.DTO.SubscriptionDto;
-import com.ql.BlogApplication.entities.Subscription;
+//import com.ql.BlogApplication.entities.Subscription;
 import com.ql.BlogApplication.services.SubscriptionService;
-import org.springframework.http.HttpStatus;
+//import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +18,8 @@ public class SubscriptionController {
     }
 
     @PostMapping
-    public ResponseEntity<String> handleSubscription(@RequestBody SubscriptionDto subscriptionDto){
-        String message=subscriptionService.handleSubscription(subscriptionDto);
-        return new ResponseEntity<>(message, HttpStatus.OK);
+    public ResponseEntity<ApiResponseNew<String>> handleSubscription(@RequestBody SubscriptionDto subscriptionDto) {
+        String message = subscriptionService.handleSubscription(subscriptionDto);
+        return ResponseEntity.ok(ApiResponseNew.success(200, message, "Subscription handled successfully"));
     }
 }
