@@ -1,8 +1,6 @@
 package com.ql.BlogApplication.services;
 
-import com.ql.BlogApplication.DTO.CategoryDto;
 import com.ql.BlogApplication.DTO.CommentDto;
-import com.ql.BlogApplication.entities.Comment;
 
 import java.util.List;
 
@@ -11,9 +9,9 @@ public interface CommentService {
 
     List<CommentDto> getALLComment();
 
-    CommentDto getCommentById(Long id);
+    CommentDto getCommentById(String id);
 
-    CommentDto updateComment(CommentDto commentDto, Long id);
+    CommentDto updateComment(CommentDto commentDto, String id);
 
-    void deleteCommentById(Long id);
+    void deleteCommentById(String id);
 }

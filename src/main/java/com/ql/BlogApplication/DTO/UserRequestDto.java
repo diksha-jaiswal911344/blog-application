@@ -63,15 +63,11 @@
 
 package com.ql.BlogApplication.DTO;
 
-import com.ql.BlogApplication.entities.Role;
-import com.ql.BlogApplication.entities.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 public class UserRequestDto {

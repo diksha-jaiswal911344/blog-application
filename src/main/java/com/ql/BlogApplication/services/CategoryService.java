@@ -6,15 +6,13 @@ import java.util.List;
 
 public interface CategoryService {
 
-CategoryDto createCategory(CategoryDto categoryDto);
+    CategoryDto createCategory(CategoryDto categoryDto);
 
-List<CategoryDto> getALLCategory();
+    List<CategoryDto> getALLCategory();
 
-CategoryDto getCategoryById(Long id);
+    CategoryDto getCategoryById(String id); // Changed from Long to String for MongoDB ObjectId
 
-CategoryDto updateCategory(CategoryDto categoryDto, Long id);
+    CategoryDto updateCategory(CategoryDto categoryDto, String id); // Changed from Long to String
 
-void deleteCategory(Long categoryId);
-
-
+    void deleteCategory(String categoryId); // Changed from Long to String
 }

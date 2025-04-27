@@ -1,8 +1,8 @@
 package com.ql.BlogApplication.services.impl;
 
 import com.ql.BlogApplication.DTO.CategoryDto;
-import com.ql.BlogApplication.entities.Category;
-import com.ql.BlogApplication.entities.Post;
+import com.ql.BlogApplication.documents.Category;
+import com.ql.BlogApplication.documents.Post;
 import com.ql.BlogApplication.exceptions.ResourceNotFoundException;
 import com.ql.BlogApplication.repository.CategoryRepository;
 import com.ql.BlogApplication.repository.PostRepository;
@@ -27,74 +27,84 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto createCategory(CategoryDto categoryDto) {
         //we have to save to db
-        Category category=mapToEntity(categoryDto);
-        Category newCategory= categoryRepository.save(category);
+        Category category = mapToEntity(categoryDto);
+        Category newCategory = categoryRepository.save(category);
 
-        // we have to give respose to the client
+        // we have to give response to the client
         return mapToDto(newCategory);
     }
 
     @Override
     public List<CategoryDto> getALLCategory() {
-        List<Category> categories= categoryRepository.findAll();
+        List<Category> categories = categoryRepository.findAll();
         return categories.stream().map(category -> mapToDto(category)).collect(Collectors.toList());
     }
 
     @Override
-    public CategoryDto getCategoryById(Long id) {
-        Category category=categoryRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("category","id",id));
+    public CategoryDto getCategoryById(String id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("category", "id", id));
         return mapToDto(category);
     }
 
     @Override
-    public CategoryDto updateCategory(CategoryDto categoryDto, Long id) {
-        Category category=categoryRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("category","id",id));
+    public CategoryDto updateCategory(CategoryDto categoryDto, String id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("category", "id", id));
         category.setTitle(categoryDto.getTitle());
         category.setCategoryName(categoryDto.getCategory_name());
-        Category updatedCategory=categoryRepository.save(category);
+        Category updatedCategory = categoryRepository.save(category);
         return mapToDto(updatedCategory);
     }
 
     @Override
-    public void deleteCategory(Long categoryId) {
-        //checking whether category is there in db or not
-        Category category=categoryRepository.findById(categoryId).orElseThrow(()->new ResourceNotFoundException("category", "id", categoryId));
+    public void deleteCategory(String categoryId) {
+        // Don't allow deleting "Uncategorized" category
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("category", "id", categoryId));
 
-        //category uncategorized is fetched
-        Category uncategorized=categoryRepository.findByCategoryName("Uncategorized").orElseThrow(()-> new ResourceNotFoundException("Uncategorized"));
+        if ("Uncategorized".equals(category.getCategoryName())) {
+            throw new RuntimeException("Cannot delete the 'Uncategorized' category");
+        }
 
-        //all posts related to the category is put into the list of posts
-        List<Post> posts=postRepository.findByCategory(category);
+        // Get uncategorized category
+        Category uncategorized = categoryRepository.findByCategoryName("Uncategorized")
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "name", "Uncategorized"));
 
-        //before deleting set the categories as uncategorized in the related posts
-        for(Post post: posts){
+        // Get all posts related to the category
+        List<Post> posts = postRepository.findByCategory(category);
+
+        // Set the category as uncategorized in all related posts
+        for (Post post : posts) {
             post.setCategory(uncategorized);
         }
 
-        //save all the posts
+        // Save all the posts
         postRepository.saveAll(posts);
 
-        //category repository now can e deleted
+        // Delete the category
         categoryRepository.delete(category);
-
     }
 
-
-    //convt entity to dto -> response send
-    private CategoryDto mapToDto (Category category){
-        CategoryDto categoryDto= new CategoryDto();
+    //convert entity to dto -> response send
+    private CategoryDto mapToDto(Category category){
+        CategoryDto categoryDto = new CategoryDto();
         categoryDto.setId(category.getId());
         categoryDto.setCategory_name(category.getCategoryName());
         categoryDto.setTitle(category.getTitle());
         return categoryDto;
     }
 
-    //convt dto to entity
-    private Category mapToEntity (CategoryDto categoryDto){
-        Category category= new Category();
+    //convert dto to entity
+    private Category mapToEntity(CategoryDto categoryDto){
+        Category category = new Category();
+        // Don't set the ID when creating a new entity, MongoDB will generate it
+        // If ID exists in the DTO, only set it during updates
+        if (categoryDto.getId() != null) {
+            category.setId(categoryDto.getId());
+        }
         category.setCategoryName(categoryDto.getCategory_name());
         category.setTitle(categoryDto.getTitle());
         return category;
     }
 }
-

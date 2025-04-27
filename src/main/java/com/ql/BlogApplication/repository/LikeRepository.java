@@ -1,12 +1,10 @@
 package com.ql.BlogApplication.repository;
 
-import com.ql.BlogApplication.entities.Like;
-import com.ql.BlogApplication.entities.Post;
-import com.ql.BlogApplication.entities.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.ql.BlogApplication.documents.Like;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;
 
-public interface LikeRepository extends JpaRepository<Like, Long> {
-    Optional<Like>findLikesByUserIdAndPostId(Long userId, Long postId);
+public interface LikeRepository extends MongoRepository<Like, String> {
+    Optional<Like> findByUserIdAndPostId(String userId, String postId);
 }

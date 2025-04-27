@@ -1,7 +1,6 @@
 package com.ql.BlogApplication.services;
 
 import com.ql.BlogApplication.DTO.PostDto;
-import com.ql.BlogApplication.entities.Post;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -13,15 +12,15 @@ public interface PostService {
 
     List<PostDto> getAllPosts();
 
-    PostDto getPostById(long id);
+    PostDto getPostById(String id);
 
-    PostDto updatePost(PostDto postDto, Long id, MultipartFile file);
+    PostDto updatePost(PostDto postDto, String id, MultipartFile file);
 
-    void deletePostById(Long id);
+    void deletePostById(String id);
 
-    List<PostDto> getPostsByCategoryId(Long categoryId);
+    List<PostDto> getPostsByCategoryId(String categoryId);
 
     List<PostDto> getUncategorizedPosts();
 
-    PostDto uploadPostImage(Long postId, MultipartFile file);
+    PostDto uploadPostImage(String postId, MultipartFile file);
 }

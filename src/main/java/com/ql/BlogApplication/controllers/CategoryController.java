@@ -2,7 +2,6 @@ package com.ql.BlogApplication.controllers;
 
 import com.ql.BlogApplication.DTO.ApiResponseNew;
 import com.ql.BlogApplication.DTO.CategoryDto;
-//import com.ql.BlogApplication.entities.Category;
 import com.ql.BlogApplication.services.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -43,10 +42,9 @@ public class CategoryController {
         );
     }
 
-
     //get category by id
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseNew<CategoryDto>> getCategoriesById(@PathVariable("id") long id) {
+    public ResponseEntity<ApiResponseNew<CategoryDto>> getCategoriesById(@PathVariable("id") String id) {
         CategoryDto category = categoryService.getCategoryById(id);
         return ResponseEntity.ok(
                 ApiResponseNew.success(200, category, "Category fetched successfully")
@@ -57,7 +55,7 @@ public class CategoryController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponseNew<Map<String, CategoryDto>>> updateCategory(
             @Valid @RequestBody CategoryDto categoryDto,
-            @PathVariable("id") long id) {
+            @PathVariable("id") String id) {
 
         CategoryDto updatedCategory = categoryService.updateCategory(categoryDto, id);
         Map<String,CategoryDto> responseUser=new HashMap<>();
@@ -67,15 +65,13 @@ public class CategoryController {
         );
     }
 
-
     //delete category by id
     @DeleteMapping("/{category_id}")
-    public ResponseEntity<ApiResponseNew<Map<String, String>>> deleteCategory(@PathVariable Long category_id) {
+    public ResponseEntity<ApiResponseNew<Map<String, String>>> deleteCategory(@PathVariable String category_id) {
         categoryService.deleteCategory(category_id);
         String message = "Category deleted successfully and related posts are assigned as 'Uncategorized'";
         Map<String,String > data= new HashMap<>();
         data.put("message",message);
         return ResponseEntity.ok(ApiResponseNew.success(200, data, "Deletion successful"));
     }
-
 }

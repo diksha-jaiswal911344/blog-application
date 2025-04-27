@@ -26,22 +26,21 @@ public class PostController {
     public ResponseEntity<ApiResponseNew<Map<String, PostDto>>> createPostTextOnly(
             @Valid @RequestBody PostDto postDto) {
         PostDto created = postService.createPost(postDto);
-        Map<String,PostDto> data=new HashMap<>();
-        data.put("Object",created);
+        Map<String,PostDto> data = new HashMap<>();
+        data.put("Object", created);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponseNew.success(201, data, "Post created successfully"));
     }
 
-
     // 2) Image upload for existing post
     @PostMapping("/{postId}/image")
     public ResponseEntity<ApiResponseNew<PostDto>> uploadImage(
-            @PathVariable Long postId,
+            @PathVariable String postId,
             @RequestParam("image") MultipartFile image) {
 
         PostDto updated = postService.uploadPostImage(postId, image);
-        Map<String, PostDto> data= new HashMap<>();
-        data.put("Object",updated);
+        Map<String, PostDto> data = new HashMap<>();
+        data.put("Object", updated);
 
         return ResponseEntity.ok(
                 ApiResponseNew.success(200, updated, "Image uploaded and post updated successfully")
@@ -50,41 +49,40 @@ public class PostController {
 
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<ApiResponseNew<Map<String, List<PostDto>>>> getPostsByCategory(
-            @PathVariable(name = "categoryId") Long categoryId) {
+            @PathVariable(name = "categoryId") String categoryId) {
 
         List<PostDto> posts = postService.getPostsByCategoryId(categoryId);
-        Map<String, List<PostDto>> data=new HashMap<>();
-        data.put("AvailablePosts",posts);
+        Map<String, List<PostDto>> data = new HashMap<>();
+        data.put("AvailablePosts", posts);
         return ResponseEntity.ok(
                 ApiResponseNew.success(200, data, "Posts fetched successfully for the category")
         );
     }
 
-
-    //get all post rest apis
+    // Get all posts rest api
     @GetMapping
     public ResponseEntity<ApiResponseNew<Map<String, List<PostDto>>>> getAllPosts() {
         List<PostDto> posts = postService.getAllPosts();
-        Map<String,List<PostDto>> data= new HashMap<>();
-        data.put("Object",posts);
+        Map<String, List<PostDto>> data = new HashMap<>();
+        data.put("Object", posts);
         return ResponseEntity.ok(
                 ApiResponseNew.success(200, data, "All posts fetched successfully")
         );
     }
 
-    //get post by id
+    // Get post by id
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseNew<PostDto>> getPostById(@PathVariable(name = "id") long id) {
+    public ResponseEntity<ApiResponseNew<PostDto>> getPostById(@PathVariable(name = "id") String id) {
         PostDto post = postService.getPostById(id);
         return ResponseEntity.ok(
                 ApiResponseNew.success(200, post, "Post fetched successfully")
         );
     }
 
-    // update post by id
+    // Update post by id
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponseNew<PostDto>> updatePost(
-            @PathVariable Long id,
+            @PathVariable String id,
             @RequestPart("post") PostDto postDto,
             @RequestParam(value = "image", required = false) MultipartFile image) {
 
@@ -94,24 +92,23 @@ public class PostController {
         );
     }
 
-    //delete post rest api
+    // Delete post rest api
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponseNew<String>> deletePost(@PathVariable(name = "id") Long id) {
+    public ResponseEntity<ApiResponseNew<String>> deletePost(@PathVariable(name = "id") String id) {
         postService.deletePostById(id);
         return ResponseEntity.ok(
                 ApiResponseNew.success(200, "Post entity deleted successfully.", "Deleted")
         );
     }
 
-    //getting uncategorized posts
+    // Getting uncategorized posts
     @GetMapping("/category/uncategorized")
     public ResponseEntity<ApiResponseNew<Map<String, List<PostDto>>>> getUncategorizedPosts() {
         List<PostDto> postDtos = postService.getUncategorizedPosts();
-        Map<String, List<PostDto>> data=new HashMap<>();
-        data.put("Object",postDtos);
+        Map<String, List<PostDto>> data = new HashMap<>();
+        data.put("Object", postDtos);
         return ResponseEntity.ok(
                 ApiResponseNew.success(200, data, "Uncategorized posts fetched successfully")
         );
     }
-
 }

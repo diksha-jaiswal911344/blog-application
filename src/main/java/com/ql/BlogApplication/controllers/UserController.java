@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.ql.BlogApplication.entities.User;
+import com.ql.BlogApplication.documents.User;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,18 +40,34 @@ public class UserController {
         this.userService = userService;
     }
 
+//    @PostMapping(value = "/register")
+//    public ResponseEntity<ApiResponseNew<Map<String, String>>> createUser(@Valid @RequestBody UserRequestDto dto) {
+//        UserResponseDto userResponse = userService.createUser(dto);
+//
+//        Map<String, String> data = new HashMap<>();
+//        data.put("userId", String.valueOf(userResponse.getId()));
+//        data.put("email", userResponse.getEmail());
+//        data.put("message", "User created successfully. OTP sent to email.");
+//
+//        return new ResponseEntity<>(ApiResponseNew.success(201, data, "Registration successful"), HttpStatus.CREATED);
+//    }
     @PostMapping(value = "/register")
     public ResponseEntity<ApiResponseNew<Map<String, String>>> createUser(@Valid @RequestBody UserRequestDto dto) {
+        // Default to "viewer" role if not specified
+        if (dto.getRoleName() == null || dto.getRoleName().isEmpty()) {
+            dto.setRoleName("viewer");
+        }
+
         UserResponseDto userResponse = userService.createUser(dto);
 
         Map<String, String> data = new HashMap<>();
-        data.put("userId", String.valueOf(userResponse.getId()));
+        data.put("userId", userResponse.getId()); // Changed to handle String ID (MongoDB uses String IDs)
         data.put("email", userResponse.getEmail());
         data.put("message", "User created successfully. OTP sent to email.");
+        data.put("role", userResponse.getRoleName()); // Include assigned role in response
 
         return new ResponseEntity<>(ApiResponseNew.success(201, data, "Registration successful"), HttpStatus.CREATED);
     }
-
 
     //verify otp during registration
     @PostMapping("/verify-otp")
@@ -65,6 +81,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponseNew.success(200, responseData, "OTP verification successful"));
     }
 
+    // verify login otp
     @PostMapping("/verify-login-otp")
     public ResponseEntity<ApiResponseNew<Map<String, String>>> verifyLoginOtp(
             @RequestBody @Valid OtpVerificationRequestDto dto) {
@@ -82,11 +99,11 @@ public class UserController {
     @GetMapping
     public ResponseEntity<ApiResponseNew<Map<String, List<UserResponseDto>>>> getAllUsers() {
 
-        List<UserResponseDto> users=userService.getAllUsers();
+        List<UserResponseDto> users = userService.getAllUsers();
 
-        Map<String,List<UserResponseDto>> wrappedUsers=new HashMap<>();
-        wrappedUsers.put("AvailableUsers",users);
-        return ResponseEntity.ok(ApiResponseNew.success(200,wrappedUsers,"fetched all users from database"));
+        Map<String, List<UserResponseDto>> wrappedUsers = new HashMap<>();
+        wrappedUsers.put("AvailableUsers", users);
+        return ResponseEntity.ok(ApiResponseNew.success(200, wrappedUsers, "fetched all users from database"));
     }
 
     //otp request FOR login on EMAIL
@@ -102,17 +119,21 @@ public class UserController {
 
     //read by id
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseNew<UserResponseDto>> getUserById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponseNew<UserResponseDto>> getUserById(@PathVariable String id) {
         UserResponseDto user = userService.getUserById(id);
         return ResponseEntity.ok(ApiResponseNew.success(200, user, "User fetched successfully"));
     }
 
+    //update user
     @PutMapping("/update")
     public ResponseEntity<ApiResponseNew<UserResponseDto>> updateUser(
-            @RequestHeader("Authorization") String token,
+            @RequestHeader("Authorization") String authHeader,
             @Valid @RequestBody UserRequestDto userRequestDto) {
 
-        String email = jwtUtil.extractEmail(token.substring(7));
+        // Extract token from Authorization header (handles "Bearer " prefix)
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+        String email = jwtUtil.extractEmail(token);
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -121,16 +142,17 @@ public class UserController {
         return ResponseEntity.ok(ApiResponseNew.success(200, response, "User updated successfully"));
     }
 
-
-    //delete
+    // delete
     @DeleteMapping("/delete")
-    public ResponseEntity<ApiResponseNew<String>> deleteUser(@RequestHeader("Authorization") String token) {
-        String email = jwtUtil.extractEmail(token.substring(7));
+    public ResponseEntity<ApiResponseNew<String>> deleteUser(@RequestHeader("Authorization") String authHeader) {
+        // Extract token from Authorization header (handles "Bearer " prefix)
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+        String email = jwtUtil.extractEmail(token);
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        userService.deleteUser(user.getId()); // Only deleting their own data
+        userService.deleteUser(user.getId());
 
         return ResponseEntity.ok(
                 ApiResponseNew.success(200, "User deleted successfully", "Operation successful")

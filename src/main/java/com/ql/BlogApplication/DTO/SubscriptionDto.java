@@ -4,15 +4,15 @@ import lombok.Data;
 
 @Data
 public class SubscriptionDto {
-    private Long userId;
-    private Long authorId;
+    private String userId;
+    private String authorId;
     private boolean isSubscribed;
 
-    public boolean isSubscribed(){
+    public boolean isSubscribed() {
         return isSubscribed;
     }
-
-    public void setIsSubscribed(boolean isSubscribed) {
-        this.isSubscribed = isSubscribed;
-    }
+//
+//    public void setIsSubscribed(boolean isSubscribed) {
+//        this.isSubscribed = isSubscribed;
+//    }
 }

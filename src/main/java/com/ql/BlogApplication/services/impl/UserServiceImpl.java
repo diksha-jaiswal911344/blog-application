@@ -1,9 +1,9 @@
 package com.ql.BlogApplication.services.impl;
 
 import com.ql.BlogApplication.DTO.*;
-import com.ql.BlogApplication.entities.Role;
-import com.ql.BlogApplication.entities.User;
-import com.ql.BlogApplication.entities.UserRole;
+import com.ql.BlogApplication.documents.Role;
+import com.ql.BlogApplication.documents.User;
+import com.ql.BlogApplication.documents.UserRole;
 import com.ql.BlogApplication.exceptions.ResourceNotFoundException;
 import com.ql.BlogApplication.repository.RoleRepository;
 import com.ql.BlogApplication.repository.UserRepository;
@@ -11,14 +11,11 @@ import com.ql.BlogApplication.repository.UserRoleRepository;
 import com.ql.BlogApplication.services.EmailService;
 import com.ql.BlogApplication.services.UserService;
 import com.ql.BlogApplication.utils.JwtUtil;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -40,8 +37,6 @@ public class UserServiceImpl implements UserService {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
     }
-
-    //todo: study modelmapping
 
     @Override
     public UserResponseDto createUser(UserRequestDto userRequestDto) {
@@ -82,14 +77,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto getUserById(Long id) {
+    public UserResponseDto getUserById(String id) {
         User user= userRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User","id",id));
         return mapToResponse(user);
     }
 
-    @Transactional
     @Override
-    public UserResponseDto updateUser(UserRequestDto userRequestDto, Long id) {
+        public UserResponseDto updateUser(UserRequestDto userRequestDto, String id) {
         User user= userRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User","id",id));
         user.setName(userRequestDto.getName());
         user.setEmail(userRequestDto.getEmail());
@@ -119,9 +113,8 @@ public class UserServiceImpl implements UserService {
         return dto;
     }
 
-    @Transactional
     @Override
-    public void deleteUser(Long id) {
+        public void deleteUser(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
 
@@ -225,7 +218,6 @@ public class UserServiceImpl implements UserService {
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
-        //user.setUserRoles(dto.getRoleName());
         return user;
     }
 
