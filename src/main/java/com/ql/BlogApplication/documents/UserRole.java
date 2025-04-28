@@ -15,7 +15,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "userRoles")
 public class UserRole {
     @Id
-    private Long id;
+    private String id;
 
     @DBRef
     private User user;
