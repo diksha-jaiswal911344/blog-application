@@ -11,8 +11,8 @@ public class SubscriptionDto {
     public boolean isSubscribed() {
         return isSubscribed;
     }
-//
-//    public void setIsSubscribed(boolean isSubscribed) {
-//        this.isSubscribed = isSubscribed;
-//    }
+
+    public void setIsSubscribed(boolean isSubscribed) {
+        this.isSubscribed = isSubscribed;
+    }
 }

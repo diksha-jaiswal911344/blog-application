@@ -33,17 +33,17 @@ public class PostController {
     }
 
     // 2) Image upload for existing post
-    @PostMapping("/{postId}/image")
-    public ResponseEntity<ApiResponseNew<PostDto>> uploadImage(
-            @PathVariable String postId,
-            @RequestParam("image") MultipartFile image) {
+    @PostMapping("/{postTitle}/image")
+    public ResponseEntity<ApiResponseNew<Map<String, PostDto>>> uploadImage(
+            @PathVariable String postTitle,
+            @RequestParam(value = "image", required = true) MultipartFile image) {
 
-        PostDto updated = postService.uploadPostImage(postId, image);
+        PostDto updated = postService.uploadPostImage(postTitle, image);
         Map<String, PostDto> data = new HashMap<>();
         data.put("Object", updated);
 
         return ResponseEntity.ok(
-                ApiResponseNew.success(200, updated, "Image uploaded and post updated successfully")
+                ApiResponseNew.success(200, data, "Image uploaded and post updated successfully")
         );
     }
 

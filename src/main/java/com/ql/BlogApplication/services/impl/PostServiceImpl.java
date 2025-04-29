@@ -47,7 +47,7 @@ public class PostServiceImpl implements PostService {
     //upload post image
     @Override
     public PostDto uploadPostImage(String postId, MultipartFile file) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByTitle(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
         String imageUrl = fileUploadService.storeFile(file);
         post.setImageUrl(imageUrl);

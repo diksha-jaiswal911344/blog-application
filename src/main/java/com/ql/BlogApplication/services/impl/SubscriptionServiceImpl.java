@@ -41,7 +41,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         logger.info("Subscription request received: {}", dto.isSubscribed());
 
         // Using the repository method for MongoDB
-        Optional<Subscription> existing = subscriptionRepository.findByUserAndAuthor(user, author);
+        Optional<Subscription> existing = subscriptionRepository.findByUserIdAndAuthorId(user.getId(), author.getId());
 
         if (dto.isSubscribed()) {
             if (existing.isPresent()) {
