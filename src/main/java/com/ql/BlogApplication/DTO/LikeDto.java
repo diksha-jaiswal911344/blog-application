@@ -8,8 +8,8 @@ import lombok.NonNull;
 @Data
 public class LikeDto {
 
-    @NotNull
-    private Long userId;
+//    @NotNull
+//    private Long userId;
 
     @NotNull
     private Long postId;

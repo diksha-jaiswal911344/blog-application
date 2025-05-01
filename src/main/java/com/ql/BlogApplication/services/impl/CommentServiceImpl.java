@@ -31,8 +31,16 @@ public class CommentServiceImpl implements CommentService {
 //    }
 
     @Override
-    public CommentDto createComment(CommentDto commentDto) {
-        Comment comment= mapToEntity(commentDto);
+    public CommentDto createComment(CommentDto commentDto, Long userId) {
+        Comment comment=new Comment();
+        comment.setComment_content(commentDto.getComment_content());
+        // fetching and assigning user from user Repository
+        User user= userRepository.findById(userId).orElseThrow(()->new RuntimeException("no user found"));
+        comment.setUser(user);
+
+        //fetch and assign post by postid from dto
+        Post post= postRepository.findById(commentDto.getPost_id()).orElseThrow(()->new ResourceNotFoundException("post","id",commentDto.getPost_id()));
+        comment.setPost(post);
         Comment newComment= commentRepository.save(comment);
 
         CommentDto commentResponse=mapToDto(newComment);
@@ -53,11 +61,16 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentDto updateComment(CommentDto commentDto, Long id) {
-        Comment comment= new Comment();
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("comment", "id", id));
+
         comment.setComment_content(commentDto.getComment_content());
-        Comment updatedComment=commentRepository.save(comment);
+
+        // Don't change post or user here unless it's intentional
+        Comment updatedComment = commentRepository.save(comment);
         return mapToDto(updatedComment);
     }
+
 
     @Override
     public void deleteCommentById(Long id) {
@@ -70,7 +83,6 @@ public class CommentServiceImpl implements CommentService {
         CommentDto commentDto= new CommentDto();
         commentDto.setId(comment.getId());
         commentDto.setComment_content(comment.getComment_content());
-        commentDto.setUser_id(comment.getUser().getId());
         commentDto.setPost_id(comment.getPost().getId());
         return commentDto;
     }
@@ -79,10 +91,6 @@ public class CommentServiceImpl implements CommentService {
     private Comment mapToEntity(CommentDto commentDto){
         Comment comment=new Comment();
         comment.setComment_content(commentDto.getComment_content());
-
-        // fetch user by id
-        User user= userRepository.findById(commentDto.getUser_id()).orElseThrow(()->new ResourceNotFoundException("User", "id", commentDto.getUser_id()));
-        comment.setUser(user);
 
         // fetch post by id
         Post post=postRepository.findById(commentDto.getPost_id()).orElseThrow(()->new ResourceNotFoundException("Post","id",commentDto.getPost_id()));

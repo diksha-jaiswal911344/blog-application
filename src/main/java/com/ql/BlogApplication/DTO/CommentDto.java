@@ -13,5 +13,4 @@ public class CommentDto {
     private String comment_content;
 
     private long post_id;
-    private long user_id;
 }

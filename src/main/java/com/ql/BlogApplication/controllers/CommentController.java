@@ -3,7 +3,10 @@ package com.ql.BlogApplication.controllers;
 import com.ql.BlogApplication.DTO.ApiResponseNew;
 import com.ql.BlogApplication.DTO.CommentDto;
 //import com.ql.BlogApplication.entities.Comment;
+import com.ql.BlogApplication.entities.User;
+import com.ql.BlogApplication.repository.UserRepository;
 import com.ql.BlogApplication.services.CommentService;
+import com.ql.BlogApplication.utils.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,14 +21,23 @@ import java.util.Map;
 public class CommentController {
     private CommentService commentService;
 
-    public CommentController(CommentService commentService) {
+    private final JwtUtil jwtUtil;
+
+    private final UserRepository userRepository;
+
+    public CommentController(CommentService commentService, JwtUtil jwtUtil, UserRepository userRepository) {
         this.commentService = commentService;
+        this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
     }
 
     //create comment
     @PostMapping
-    public ResponseEntity<ApiResponseNew<Map<String, CommentDto>>> createComment(@Valid @RequestBody CommentDto commentDto) {
-        CommentDto createdComment = commentService.createComment(commentDto);
+    public ResponseEntity<ApiResponseNew<Map<String, CommentDto>>> createComment(@Valid @RequestBody CommentDto commentDto, @RequestHeader("Authorization") String token) {
+        String email=jwtUtil.extractEmail(token.substring(7));
+        User user= userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("LoggedIn user not found"));
+
+        CommentDto createdComment = commentService.createComment(commentDto, user.getId());
         Map<String,CommentDto > data= new HashMap<>();
         data.put("Object",createdComment);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -49,12 +61,13 @@ public class CommentController {
     }
 
     //update comment
-    @PutMapping("{id}")
+    @PutMapping
     public ResponseEntity<ApiResponseNew<CommentDto>> updateComment(
             @Valid @RequestBody CommentDto commentDto,
-            @PathVariable(value = "id") long id) {
-
-        CommentDto updatedComment = commentService.updateComment(commentDto, id);
+            @RequestHeader("Authorization") String token) {
+        String email=jwtUtil.extractEmail(token.substring(7));
+        User user= userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("LoggedIn user not found"));
+        CommentDto updatedComment = commentService.updateComment(commentDto, user.getId());
         return ResponseEntity.ok(ApiResponseNew.success(200, updatedComment, "Comment updated successfully"));
     }
 

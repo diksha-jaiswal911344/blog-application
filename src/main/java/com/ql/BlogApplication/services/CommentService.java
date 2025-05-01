@@ -7,7 +7,7 @@ import com.ql.BlogApplication.entities.Comment;
 import java.util.List;
 
 public interface CommentService {
-    CommentDto createComment(CommentDto commentDto);
+    CommentDto createComment(CommentDto commentDto, Long userId);
 
     List<CommentDto> getALLComment();
 

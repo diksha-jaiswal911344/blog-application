@@ -34,12 +34,12 @@ public class LikeServiceImpl implements LikeService {
 
     @Transactional
     @Override
-    public String toggleLike(LikeDto likeDto) {
-        User user= userRepository.findById(likeDto.getUserId()).orElseThrow(()->new ResourceNotFoundException("user","id",likeDto.getUserId()));
+    public String toggleLike(LikeDto likeDto, Long userId) {
+        User user= userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("user","id",userId));
         Post post= postRepository.findById(likeDto.getPostId()).orElseThrow(()->new ResourceNotFoundException("post","id",likeDto.getPostId()));
 
         logger.info("request is arived:{}",likeDto.isLike());
-        Optional<Like> existingLikeOpt=likeRepository.findLikesByUserIdAndPostId(likeDto.getUserId(),likeDto.getPostId());
+        Optional<Like> existingLikeOpt=likeRepository.findLikesByUserIdAndPostId(userId,likeDto.getPostId());
 
         if(likeDto.isLike()){
             //user wants to like
@@ -61,7 +61,7 @@ public class LikeServiceImpl implements LikeService {
                 likeRepository.delete(existingLikeOpt.get());
                 return "post unliked successfully";
             }else{
-                throw new ResourceNotFoundException("Like","userId & postId",likeDto.getUserId() + "&" + likeDto.getPostId());
+                throw new ResourceNotFoundException("Like","userId & postId",userId + "&" + likeDto.getPostId());
             }
         }
     }
