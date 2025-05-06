@@ -3,24 +3,25 @@ package com.ql.BlogApplication.services;
 import com.ql.BlogApplication.DTO.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
-    UserResponseDto createUser(UserRequestDto userRequestDto);
+    ApiResponseNew<Map<String, String>> createUser(UserRequestDto userRequestDto);
+    // Methods to be updated
+    ApiResponseNew<List<UserResponseDto>> getAllUsers();
 
-    List<UserResponseDto> getAllUsers();
+    ApiResponseNew<UserResponseDto> getUserById(Long id);
 
-    UserResponseDto getUserById(Long id);
+    ApiResponseNew<UserResponseDto> updateUser(UserRequestDto userRequestDto, Long id);
 
-    UserResponseDto updateUser(UserRequestDto userRequestDto, Long id);
+    ApiResponseNew<Map<String, String>> deleteUser(Long id);
 
-    void deleteUser(Long id);
+    ApiResponseNew<Map<String, String>> loginUser(LoginDto loginDto);
 
-    String loginUser(LoginDto loginDto);
+    ApiResponseNew<Map<String, String>> verifyOtp(OtpVerificationRequestDto otpVerificationRequestDto);
 
-    public String verifyOtp(OtpVerificationRequestDto otpVerificationRequestDto);
+    ApiResponseNew<Map<String, String>> sendOtpForLogin(OtpLoginRequestDto otpLoginRequestDto);
 
-    public void sendOtpForLogin(OtpLoginRequestDto otpLoginRequestDto);
-
-    String verifyLoginOtp(OtpVerificationRequestDto otpVerificationRequestDto);
+    ApiResponseNew<Map<String, String>> verifyLoginOtp(OtpVerificationRequestDto dto);
 
 }

@@ -20,6 +20,6 @@ public class SubscriptionController {
     @PostMapping
     public ResponseEntity<ApiResponseNew<String>> handleSubscription(@RequestBody SubscriptionDto subscriptionDto) {
         String message = subscriptionService.handleSubscription(subscriptionDto);
-        return ResponseEntity.ok(ApiResponseNew.success(200, message, "Subscription handled successfully"));
+        return ResponseEntity.ok(ApiResponseNew.success(200, true, "Subscription handled successfully", null));
     }
 }

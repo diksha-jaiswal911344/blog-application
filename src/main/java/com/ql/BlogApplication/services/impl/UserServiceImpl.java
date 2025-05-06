@@ -16,10 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,29 +40,35 @@ public class UserServiceImpl implements UserService {
 
     //todo: study modelmapping
 
+    //to create user
     @Override
-    public UserResponseDto createUser(UserRequestDto userRequestDto) {
-        if(userRepository.existsByEmail(userRequestDto.getEmail())){
-            throw new RuntimeException("Email already exists");
+    public ApiResponseNew<Map<String, String>> createUser(UserRequestDto userRequestDto) {
+        if (userRepository.existsByEmail(userRequestDto.getEmail())) {
+            return ApiResponseNew.success(409, false, "Email already exists", Collections.emptyMap());
         }
-        //fetch the role
-        Role role = roleRepository.findByName(userRequestDto.getRoleName())
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", userRequestDto.getRoleName()));
+
+        // Check if role exists
+        Optional<Role> roleOptional = roleRepository.findByName(userRequestDto.getRoleName());
+        if (roleOptional.isEmpty()) {
+            return ApiResponseNew.success(404, false, "Role not found with name: " + userRequestDto.getRoleName(), Collections.emptyMap());
+        }
+
+        Role role = roleOptional.get();
 
         //Generate OTP
         String otp = String.valueOf(new Random().nextInt(900000) + 100000); // 6-digit OTP
         Date otpGeneratedTime = new Date();
 
         //create and save user
-        User user=mapToEntity(userRequestDto);
+        User user = mapToEntity(userRequestDto);
         user.setRole(role);
         user.setOtp(otp);
         user.setOtpGeneratedTime(otpGeneratedTime);
         user.setEmailVerified(false);
-        user=userRepository.save(user);
+        user = userRepository.save(user);
 
         //create user role and save it
-        UserRole userRole= new UserRole();
+        UserRole userRole = new UserRole();
         userRole.setUser(user);
         userRole.setRole(role);
         userRoleRepository.save(userRole);
@@ -73,24 +76,53 @@ public class UserServiceImpl implements UserService {
         //send otp email
         emailService.sendOtpEmail(user.getEmail(), otp);
 
-        return mapToResponse(user);
+        Map<String, String> data = new HashMap<>();
+        data.put("userId", String.valueOf(user.getId()));
+        data.put("email", user.getEmail());
+
+        return ApiResponseNew.success(201, true, "Registration successful", data);
     }
 
+    //to get all users
     @Override
-    public List<UserResponseDto> getAllUsers() {
-        return userRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+    public ApiResponseNew<List<UserResponseDto>> getAllUsers() {
+        List<UserResponseDto> users = userRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+        return ApiResponseNew.success(200, true, "Users fetched successfully", users);
     }
 
+    //get user by id
     @Override
-    public UserResponseDto getUserById(Long id) {
-        User user= userRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User","id",id));
-        return mapToResponse(user);
+    public ApiResponseNew<UserResponseDto> getUserById(Long id) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isEmpty()) {
+            return ApiResponseNew.success(404, false, "User not found with id: " + id, null);
+        }
+
+        UserResponseDto userResponseDto = mapToResponse(userOptional.get());
+        return ApiResponseNew.success(200, true, "User fetched successfully", userResponseDto);
     }
 
+    //to update user
     @Transactional
     @Override
-    public UserResponseDto updateUser(UserRequestDto userRequestDto, Long id) {
-        User user= userRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User","id",id));
+    public ApiResponseNew<UserResponseDto> updateUser(UserRequestDto userRequestDto, Long id) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isEmpty()) {
+            return ApiResponseNew.success(404, false, "User not found with id: " + id, null);
+        }
+
+        User user = userOptional.get();
+
+        // Check if role exists
+        Optional<Role> roleOptional = roleRepository.findByName(userRequestDto.getRoleName());
+        if (roleOptional.isEmpty()) {
+            return ApiResponseNew.success(404, false, "Role not found with name: " + userRequestDto.getRoleName(), null);
+        }
+
+        Role role = roleOptional.get();
+
         user.setName(userRequestDto.getName());
         user.setEmail(userRequestDto.getEmail());
         user.setPassword(userRequestDto.getPassword());
@@ -100,72 +132,96 @@ public class UserServiceImpl implements UserService {
         //first remove all roles to avoid duplicate roles
         userRoleRepository.deleteByUser(user);
 
-        Role role = roleRepository.findByName(userRequestDto.getRoleName()).orElseThrow(()-> new ResourceNotFoundException("Role","name",userRequestDto.getRoleName()));
-
-        UserRole userRole=new UserRole();
+        UserRole userRole = new UserRole();
         userRole.setUser(user);
         userRole.setRole(role);
         userRoleRepository.save(userRole);
 
-        List<UserRole> userRoles=userRoleRepository.findByUser(user);
-        String updatedRoleName=userRoles.get(0).getRole().getName();
+        List<UserRole> userRoles = userRoleRepository.findByUser(user);
+        String updatedRoleName = userRoles.isEmpty() ? "" : userRoles.get(0).getRole().getName();
 
-        UserResponseDto dto= new UserResponseDto();
+        UserResponseDto dto = new UserResponseDto();
         dto.setId(user.getId());
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());
         dto.setRoleName(updatedRoleName);
+        dto.setEmailVerified(user.getEmailVerified());
 
-        return dto;
+        return ApiResponseNew.success(200, true, "User updated successfully", dto);
     }
 
+    // to delete user
     @Transactional
     @Override
-    public void deleteUser(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+    public ApiResponseNew<Map<String, String>> deleteUser(Long id) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isEmpty()) {
+            return ApiResponseNew.success(404, false, "User not found with id: " + id, Collections.emptyMap());
+        }
 
+        User user = userOptional.get();
         userRoleRepository.deleteByUser(user);
         userRepository.delete(user);
+
+        Map<String, String> data = new HashMap<>();
+        data.put("status", "deleted");
+        data.put("userId", id.toString());
+
+        return ApiResponseNew.success(200, true, "User deleted successfully", data);
     }
 
     @Override
-    public String loginUser(LoginDto loginDto) {
+    public ApiResponseNew<Map<String, String>> loginUser(LoginDto loginDto) {
         if (loginDto.getEmail() == null || loginDto.getEmail().isEmpty() ||
                 loginDto.getPassword() == null || loginDto.getPassword().isEmpty()) {
-            throw new RuntimeException("Email and password must not be empty");
+            return ApiResponseNew.success(400, false, "Email and password must not be empty", Collections.emptyMap());
         }
 
-        User user = userRepository.findByEmail(loginDto.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Optional<User> userOptional = userRepository.findByEmail(loginDto.getEmail());
+        if (userOptional.isEmpty()) {
+            return ApiResponseNew.success(404, false, "User not found with email: " + loginDto.getEmail(), Collections.emptyMap());
+        }
+
+        User user = userOptional.get();
 
         if (!user.getPassword().equals(loginDto.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            return ApiResponseNew.success(401, false, "Invalid credentials", Collections.emptyMap());
         }
 
-        return jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getId());
+
+        Map<String, String> data = new HashMap<>();
+        data.put("token", token);
+        data.put("userId", user.getId().toString());
+
+        return ApiResponseNew.success(200, true, "Login successful", data);
     }
 
-
+    //to varify otp
     @Override
-    public String verifyOtp(OtpVerificationRequestDto otpVerificationRequestDto){
-        User user = userRepository.findByEmail(otpVerificationRequestDto.getEmail()).orElseThrow(()-> new ResourceNotFoundException("User", "Email", otpVerificationRequestDto.getEmail()));
+    public ApiResponseNew<Map<String, String>> verifyOtp(OtpVerificationRequestDto otpVerificationRequestDto) {
+        Optional<User> userOptional = userRepository.findByEmail(otpVerificationRequestDto.getEmail());
+        if (userOptional.isEmpty()) {
+            return ApiResponseNew.success(404, false, "User not found with email: " + otpVerificationRequestDto.getEmail(), Collections.emptyMap());
+        }
 
-        if(user.getOtp()==null || user.getOtpGeneratedTime()==null){
-            throw new RuntimeException("Otp not generated please register again");
+        User user = userOptional.get();
+
+        if (user.getOtp() == null || user.getOtpGeneratedTime() == null) {
+            return ApiResponseNew.success(400, false, "OTP not generated. Please register again", Collections.emptyMap());
         }
 
         // check otp expiry(10 min)
-        long currentTime= System.currentTimeMillis();
-        long otpGeneratedTime=user.getOtpGeneratedTime().getTime();
+        long currentTime = System.currentTimeMillis();
+        long otpGeneratedTime = user.getOtpGeneratedTime().getTime();
 
-        if((currentTime - otpGeneratedTime) > 10*60*1000){
-            throw new RuntimeException("otp expired please register again");
+        if ((currentTime - otpGeneratedTime) > 10 * 60 * 1000) {
+            return ApiResponseNew.success(400, false, "OTP expired. Please register again", Collections.emptyMap());
         }
 
         //validate otp
-        if(!user.getOtp().equals(otpVerificationRequestDto.getOtp())){
-            throw new RuntimeException("otp invalid");
+        if (!user.getOtp().equals(otpVerificationRequestDto.getOtp())) {
+            return ApiResponseNew.success(400, false, "OTP invalid", Collections.emptyMap());
         }
 
         //update user after verification
@@ -174,63 +230,91 @@ public class UserServiceImpl implements UserService {
         user.setOtpGeneratedTime(null);
         userRepository.save(user);
 
-        return "Email varified successfully";
+        Map<String, String> data = new HashMap<>();
+        data.put("message", "Email verified successfully");
+        data.put("userId", user.getId().toString());
+
+        return ApiResponseNew.success(200, true, "OTP verification successful", data);
     }
 
-    //send otp for login
-    public void sendOtpForLogin(OtpLoginRequestDto otpLoginRequestDto) {
-        User user = userRepository.findByEmail(otpLoginRequestDto.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", otpLoginRequestDto.getEmail()));
-
-        if (user.getEmailVerified()==null || !user.getEmailVerified()) {
-            throw new RuntimeException("Email not verified.");
+    //to sendOtpForLogin
+    @Override
+    public ApiResponseNew<Map<String, String>> sendOtpForLogin(OtpLoginRequestDto otpLoginRequestDto) {
+        Optional<User> userOptional = userRepository.findByEmail(otpLoginRequestDto.getEmail());
+        if (userOptional.isEmpty()) {
+            return ApiResponseNew.success(404, false, "User not found with email: " + otpLoginRequestDto.getEmail(), Collections.emptyMap());
         }
 
-        String otp = String.format("%06d",new Random().nextInt(999999));
+        User user = userOptional.get();
+
+        if (user.getEmailVerified() == null || !user.getEmailVerified()) {
+            return ApiResponseNew.success(400, false, "Email not verified", Collections.emptyMap());
+        }
+
+        String otp = String.format("%06d", new Random().nextInt(999999));
         user.setOtp(otp);
         user.setOtpGeneratedTime(new Date());
         userRepository.save(user);
 
-        emailService.sendOtpEmail(otpLoginRequestDto.getEmail(), otp);
-    }
-
-    @Override
-    public String verifyLoginOtp(OtpVerificationRequestDto dto) {
-        User user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", dto.getEmail()));
-
-        if (user.getOtp() == null || !user.getOtp().equals(dto.getOtp())) {
-            throw new RuntimeException("Invalid OTP.");
+        try {
+            emailService.sendOtpEmail(otpLoginRequestDto.getEmail(), otp);
+        } catch (Exception e) {
+            // Log email sending error but continue
+            return ApiResponseNew.success(500, false, "Failed to send OTP email", Collections.emptyMap());
         }
 
-        // Optional: Check OTP expiry (e.g., valid for 5 minutes)
+        Map<String, String> data = new HashMap<>();
+        data.put("status", "sent");
+        data.put("email", user.getEmail());
+
+        return ApiResponseNew.success(200, true, "OTP sent to the registered email", data);
+    }
+
+    //to verifyLoginOtp
+    @Override
+    public ApiResponseNew<Map<String, String>> verifyLoginOtp(OtpVerificationRequestDto dto) {
+        Optional<User> userOptional = userRepository.findByEmail(dto.getEmail());
+        if (userOptional.isEmpty()) {
+            return ApiResponseNew.success(404, false, "User not found with email: " + dto.getEmail(), Collections.emptyMap());
+        }
+
+        User user = userOptional.get();
+
+        if (user.getOtp() == null || !user.getOtp().equals(dto.getOtp())) {
+            return ApiResponseNew.success(400, false, "Invalid OTP", Collections.emptyMap());
+        }
+
+        // Check OTP expiry (5 minutes)
         long otpAge = new Date().getTime() - user.getOtpGeneratedTime().getTime();
         if (otpAge > 5 * 60 * 1000) {
-            throw new RuntimeException("OTP has expired.");
+            return ApiResponseNew.success(400, false, "OTP has expired", Collections.emptyMap());
         }
 
         // Generate JWT
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getId());
 
         // Clear the OTP after successful login
         user.setOtp(null);
         user.setOtpGeneratedTime(null);
         userRepository.save(user);
 
-        return token;
+        Map<String, String> data = new HashMap<>();
+        data.put("token", token);
+        data.put("userId", user.getId().toString());
+
+        return ApiResponseNew.success(200, true, "Login OTP verified", data);
     }
 
-    private User mapToEntity(UserRequestDto dto){
-        User user= new User();
+    private User mapToEntity(UserRequestDto dto) {
+        User user = new User();
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
-        //user.setUserRoles(dto.getRoleName());
         return user;
     }
 
-    private UserResponseDto mapToResponse (User user){
-        UserResponseDto dto= new UserResponseDto();
+    private UserResponseDto mapToResponse(User user) {
+        UserResponseDto dto = new UserResponseDto();
         dto.setId(user.getId());
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());

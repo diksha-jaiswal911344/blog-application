@@ -27,33 +27,33 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         this.userRepository = userRepository;
     }
 
+    //to handle subscription
     @Override
     public String handleSubscription(SubscriptionDto dto) {
-        User user=userRepository.findById(dto.getUserId()).orElseThrow(()->new ResourceNotFoundException("user","id",dto.getUserId()));
-        User author=userRepository.findById(dto.getAuthorId()).orElseThrow(()->new ResourceNotFoundException("author","id", dto.getAuthorId()));
+        User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new ResourceNotFoundException("user not found"));
+        User author = userRepository.findById(dto.getAuthorId()).orElseThrow(() -> new ResourceNotFoundException("author not found"));
         // THE  REQUESTED dto author must be author check
-        if(!author.getUserRoles().stream().anyMatch(userRole -> "author".equals(userRole.getRole().getName()))){
+        if (!author.getUserRoles().stream().anyMatch(userRole -> "author".equals(userRole.getRole().getName()))) {
             throw new IllegalArgumentException("the given user is not author");
         }
 
-        logger.info("req is arrived:{}",dto.isSubscribed());
-        Optional<Subscription> existing= subscriptionRepository.findByUserAndAuthor(user,author);
+        logger.info("req is arrived:{}", dto.isSubscribed());
+        Optional<Subscription> existing = subscriptionRepository.findByUserAndAuthor(user, author);
 
-        if(dto.isSubscribed()){
-            if(existing.isPresent()){
+        if (dto.isSubscribed()) {
+            if (existing.isPresent()) {
                 return "already subscribed by you";
             }
 
-            Subscription subscription=new Subscription();
+            Subscription subscription = new Subscription();
             subscription.setUser(user);
             subscription.setAuthor(author);
             subscriptionRepository.save(subscription);
             return "the author subscribed successfully";
-        }
-        else {
+        } else {
             //unsubscribe
             if (existing.isEmpty()) {
-                throw new ResourceNotFoundException("Subscription", "authorId and userId", dto.getAuthorId() + " & " + dto.getUserId());
+                throw new ResourceNotFoundException("there is no existing subscription");
             }
             subscriptionRepository.delete(existing.get());
             return "author unsubscribed successfully";

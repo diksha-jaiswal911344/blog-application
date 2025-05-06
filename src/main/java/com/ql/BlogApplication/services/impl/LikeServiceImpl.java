@@ -35,33 +35,32 @@ public class LikeServiceImpl implements LikeService {
     @Transactional
     @Override
     public String toggleLike(LikeDto likeDto, Long userId) {
-        User user= userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("user","id",userId));
-        Post post= postRepository.findById(likeDto.getPostId()).orElseThrow(()->new ResourceNotFoundException("post","id",likeDto.getPostId()));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("user not found with given id"));
+        Post post = postRepository.findById(likeDto.getPostId()).orElseThrow(() -> new ResourceNotFoundException("post not found"));
 
-        logger.info("request is arived:{}",likeDto.isLike());
-        Optional<Like> existingLikeOpt=likeRepository.findLikesByUserIdAndPostId(userId,likeDto.getPostId());
+        logger.info("request is arived:{}", likeDto.isLike());
+        Optional<Like> existingLikeOpt = likeRepository.findLikesByUserIdAndPostId(userId, likeDto.getPostId());
 
-        if(likeDto.isLike()){
+        if (likeDto.isLike()) {
             //user wants to like
 
-            if(existingLikeOpt.isPresent()){
+            if (existingLikeOpt.isPresent()) {
                 return "already liked";
             }
             logger.info("creating like");
-            Like like=new Like();
+            Like like = new Like();
             like.setUser(user);
             like.setPost(post);
             likeRepository.save(like);
             return "Post Liked Successfully";
-        }
-        else{
+        } else {
 
             //user want's to unlike
-            if(existingLikeOpt.isPresent()){
+            if (existingLikeOpt.isPresent()) {
                 likeRepository.delete(existingLikeOpt.get());
                 return "post unliked successfully";
-            }else{
-                throw new ResourceNotFoundException("Like","userId & postId",userId + "&" + likeDto.getPostId());
+            } else {
+                throw new ResourceNotFoundException("user id or post id not found");
             }
         }
     }

@@ -5,6 +5,7 @@ package com.ql.BlogApplication.DTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NonNull;
@@ -25,8 +26,10 @@ public class PostDto {
     @JsonProperty("isPublished")
     private boolean isPublished;
 
+    @NotNull(message = "Category is required")
     private long categoryId;
 
     private String imageUrl;
 
+    private long UserId;
 }

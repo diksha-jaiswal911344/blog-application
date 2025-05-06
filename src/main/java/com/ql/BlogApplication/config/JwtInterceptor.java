@@ -33,14 +33,10 @@ public class JwtInterceptor implements HandlerInterceptor {
                 throw new RuntimeException("Invalid token");
             }
 
-//            // Optional: Log or check role/username if needed
-//            String username = jwtUtil.extractUsername(token);
-//            String role = jwtUtil.extractRole(token);
-//
-//            // Can set user details in request attribute if needed
-//            request.setAttribute("email", email);
-//            request.setAttribute("username", username);
-//            request.setAttribute("role", role);
+            // Extract user ID from token and set as request attribute
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            request.setAttribute("userId", userId);
+            request.setAttribute("email", email);
 
             return true; // all okay
 

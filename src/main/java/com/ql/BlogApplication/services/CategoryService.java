@@ -1,20 +1,22 @@
 package com.ql.BlogApplication.services;
 
+import com.ql.BlogApplication.DTO.ApiResponseNew;
 import com.ql.BlogApplication.DTO.CategoryDto;
 
 import java.util.List;
+import java.util.Map;
 
 public interface CategoryService {
 
-CategoryDto createCategory(CategoryDto categoryDto);
+    ApiResponseNew<CategoryDto> createCategory(CategoryDto categoryDto, Long authorId);
 
-List<CategoryDto> getALLCategory();
+    ApiResponseNew<List<CategoryDto>> getALLCategory();
 
-CategoryDto getCategoryById(Long id);
+    ApiResponseNew<CategoryDto> getCategoryById(Long id);
 
-CategoryDto updateCategory(CategoryDto categoryDto, Long id);
+    ApiResponseNew<CategoryDto> updateCategory(CategoryDto categoryDto, Long id, Long currentUserId);
 
-void deleteCategory(Long categoryId);
+    ApiResponseNew<String> deleteCategory(Long categoryId, Long currentUserId);
 
-
+    public boolean isAuthorOfCategory(Long categoryId, Long userId);
 }

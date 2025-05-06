@@ -29,14 +29,16 @@ public class Post {
     @Column(nullable = false)
     private boolean isPublished;
 
-//<<<<<<< Updated upstream
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
-//=======
+
     @Column(nullable = true)
     private String imageUrl;
-//>>>>>>> Stashed changes
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)

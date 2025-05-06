@@ -41,7 +41,7 @@ public class CommentController {
         Map<String,CommentDto > data= new HashMap<>();
         data.put("Object",createdComment);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponseNew.success(201, data, "Comment created successfully"));
+                .body(ApiResponseNew.success(201, true, "Comment created successfully",data));
     }
 
     //    getAllComments
@@ -50,14 +50,14 @@ public class CommentController {
         List<CommentDto> comments = commentService.getALLComment();
         Map<String,List<CommentDto> > data= new HashMap<>();
         data.put("Object", comments);
-        return ResponseEntity.ok(ApiResponseNew.success(200, data, "All comments fetched successfully"));
+        return ResponseEntity.ok(ApiResponseNew.success(200, true, "All comments fetched successfully",data));
     }
 
     //getCommentById
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponseNew<CommentDto>> getCommentById(@PathVariable(value = "id") long id) {
         CommentDto commentDto = commentService.getCommentById(id);
-        return ResponseEntity.ok(ApiResponseNew.success(200, commentDto, "Comment fetched successfully"));
+        return ResponseEntity.ok(ApiResponseNew.success(200,true, "Comment fetched successfully", commentDto));
     }
 
     //update comment
@@ -68,7 +68,7 @@ public class CommentController {
         String email=jwtUtil.extractEmail(token.substring(7));
         User user= userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("LoggedIn user not found"));
         CommentDto updatedComment = commentService.updateComment(commentDto, user.getId());
-        return ResponseEntity.ok(ApiResponseNew.success(200, updatedComment, "Comment updated successfully"));
+        return ResponseEntity.ok(ApiResponseNew.success(200, true, "Comment updated successfully",updatedComment));
     }
 
 }

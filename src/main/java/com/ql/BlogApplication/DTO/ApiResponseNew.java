@@ -1,34 +1,43 @@
 package com.ql.BlogApplication.DTO;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Collections;
+
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApiResponseNew<T>  {
-    private boolean success;
-    private int code;
-    private String message;
-    private T error;
-    private T data;// <--- This will hold User or any data
 
-    public static <T> ApiResponseNew<T> success(int code, T data, String message) {
+public class ApiResponseNew<T> {
+    private int code;
+    private boolean success;
+    private String message;
+    //    private T error;
+    @Builder.Default
+    private Object data = Collections.emptyMap();
+
+    @JsonIgnore
+    private int httpStatusCode;
+
+    public static <T> ApiResponseNew<T> success(int code, boolean success, String message, Object data) {
         return ApiResponseNew.<T>builder()
-                .success(true)
                 .code(code)
+                .success(success)
                 .message(message)
                 .data(data)
-                .build();
-    }
-
-    public static <T> ApiResponseNew<T> error(int code, T error, String message) {
-        return ApiResponseNew.<T>builder()
-                .success(false)
-                .code(code)
-                .message(message)
-                .error(error)
+                .httpStatusCode(success ? 200 : 400)
                 .build();
     }
 }
+//    public static <T> ApiResponseNew<T> error(int code, T error, String message) {
+//        return ApiResponseNew.<T>builder()
+//                .success(false)
+//                .code(code)
+//                .message(message)
+//                .error(error)
+//                .build();
+//    }
+
