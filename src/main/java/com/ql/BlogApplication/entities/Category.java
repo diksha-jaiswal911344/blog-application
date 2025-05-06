@@ -28,7 +28,6 @@ public class Category {
     @Column(nullable = false)
     private String title;
 
-    // Add relationship to User/Author
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)
     private User author;

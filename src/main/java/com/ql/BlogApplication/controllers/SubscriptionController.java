@@ -2,9 +2,7 @@ package com.ql.BlogApplication.controllers;
 
 import com.ql.BlogApplication.DTO.ApiResponseNew;
 import com.ql.BlogApplication.DTO.SubscriptionDto;
-//import com.ql.BlogApplication.entities.Subscription;
 import com.ql.BlogApplication.services.SubscriptionService;
-//import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

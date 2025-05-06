@@ -12,5 +12,5 @@ public class ApiResponse {
     private int Code;
     private String message;
     private String error;
-    private Object data;  // <--- This will hold User or any data
+    private Object data;
 }

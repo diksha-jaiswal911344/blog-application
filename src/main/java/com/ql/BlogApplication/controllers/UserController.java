@@ -5,8 +5,6 @@ import com.ql.BlogApplication.repository.UserRepository;
 import com.ql.BlogApplication.services.UserService;
 import com.ql.BlogApplication.utils.JwtUtil;
 import jakarta.validation.Valid;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +17,6 @@ import java.util.*;
 @RestController
 @RequestMapping("api/users")
 public class UserController {
-
-//    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private final UserRepository userRepository;
 

@@ -2,7 +2,6 @@ package com.ql.BlogApplication.controllers;
 
 import com.ql.BlogApplication.DTO.ApiResponseNew;
 import com.ql.BlogApplication.DTO.CommentDto;
-//import com.ql.BlogApplication.entities.Comment;
 import com.ql.BlogApplication.entities.User;
 import com.ql.BlogApplication.repository.UserRepository;
 import com.ql.BlogApplication.services.CommentService;

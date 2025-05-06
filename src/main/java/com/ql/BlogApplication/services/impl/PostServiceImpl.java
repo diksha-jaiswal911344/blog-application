@@ -154,7 +154,6 @@ import com.ql.BlogApplication.entities.Category;
 import com.ql.BlogApplication.entities.Post;
 import com.ql.BlogApplication.entities.User;
 import com.ql.BlogApplication.exceptions.ResourceNotFoundException;
-//import com.ql.BlogApplication.exceptions.UnauthorizedException;
 import com.ql.BlogApplication.repository.CategoryRepository;
 import com.ql.BlogApplication.repository.PostRepository;
 import com.ql.BlogApplication.repository.UserRepository;

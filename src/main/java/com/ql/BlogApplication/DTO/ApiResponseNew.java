@@ -15,7 +15,6 @@ public class ApiResponseNew<T> {
     private int code;
     private boolean success;
     private String message;
-    //    private T error;
     @Builder.Default
     private Object data = Collections.emptyMap();
 
@@ -32,12 +31,4 @@ public class ApiResponseNew<T> {
                 .build();
     }
 }
-//    public static <T> ApiResponseNew<T> error(int code, T error, String message) {
-//        return ApiResponseNew.<T>builder()
-//                .success(false)
-//                .code(code)
-//                .message(message)
-//                .error(error)
-//                .build();
-//    }
 
